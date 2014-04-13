@@ -1,0 +1,9 @@
+*~*
+*pyc
+*.orig
+*.db
+*.exe
+doc/
+*.pdf
+*.xls
+ARMOIRE/
