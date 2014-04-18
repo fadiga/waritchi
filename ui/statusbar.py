@@ -9,6 +9,7 @@ from PyQt4.QtGui import QStatusBar
 from models import Owner
 from configuration import Config
 from Common.ui.common import (F_Label)
+# from ussd import get_solde
 
 
 class GStatusBar(QStatusBar):
@@ -23,10 +24,10 @@ class GStatusBar(QStatusBar):
         self.startTimer(5000)
 
     def timerEvent(self, event):
+        msg = "Les solde est: {solde}  "
         if self.compt == 0:
             self.showMessage(u"Bienvenue! sur {}. Un outil rapide et facile à "
-                             u"utiliser qui vous permet de faire le suivi de "
-                             u"stock".format(Config.APP_NAME), 14000)
+                             u"utiliser".format(Config.APP_NAME), 14000)
         if self.compt == 1:
             try:
                 user = Owner.get(islog=True)
@@ -44,3 +45,12 @@ class GStatusBar(QStatusBar):
             self.compt = 0
         self.compt += 1
 
+        try:
+            solde = get_solde()
+            mgs = u"""Dernier Solde: {cpt_p}  {bonus_SMS}{bonus_orange}
+                      """.format(cpt_p=solde[0], bonus_SMS=solde[1],
+                                 bonus_orange=solde[2])
+        except Exception as e:
+            mgs = u"Veuillez branché le modem (cléf 3g)"
+
+        # self.showMessage(mgs, 15000)

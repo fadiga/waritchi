@@ -3,13 +3,20 @@
 # maintainer: Fadiga
 
 
-from PyQt4 import QtGui, QtCore
+from PyQt4.QtGui import (QSplitter, QHBoxLayout, QVBoxLayout, QGridLayout,
+                         QCompleter, QTableWidgetItem, QPixmap, QFont,
+                         QListWidget, QListWidgetItem, QIcon, QMenu)
+from PyQt4.QtCore import Qt
 
-from models import Contact, Transfer, ContactGroup, Group, PhoneNumber
 
-from Common.ui.common import F_Widget, F_BoxTitle
+from models import Contact, Transfer, ContactGroup, Group
+
+from Common.ui.common import F_Widget, F_BoxTitle, Button, LineEdit, F_Label
 from Common.ui.table import F_TableWidget
 from addgroup import GroupViewWidget
+from contact_in_group import ContactGroupViewWidget
+from send_by_group import SendGroupViewWidget
+from configuration import Config
 
 ALL_CONTACTS = -1
 
@@ -21,33 +28,30 @@ class ContactViewWidget(F_Widget):
         super(ContactViewWidget, self).__init__(parent=parent,
                                                         *args, **kwargs)
         self.parent = parent
-        self.parentWidget().setWindowTitle(u"Carnet d'adresse")
+        self.parentWidget().setWindowTitle(Config.NAME_ORGA + u"Carnet d'adresse")
 
-        hbox = QtGui.QHBoxLayout(self)
+        hbox = QHBoxLayout(self)
 
         self.table_contact = ContactTableWidget(parent=self)
-        self.table_info = InfoTableWidget(parent=self)
         self.table_group = GroupTableWidget(parent=self)
         self.table_transf = TransfTableWidget(parent=self)
         self.operation = OperationWidget(parent=self)
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        splitter = QSplitter(Qt.Horizontal)
 
-        self.splitter_left = QtGui.QSplitter(QtCore.Qt.Vertical)
-
+        self.splitter_left = QSplitter(Qt.Vertical)
         self.splitter_left.addWidget(F_BoxTitle(u"Les groupes"))
         self.splitter_left.addWidget(self.table_group)
 
-        splitter_details = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        splitter_details.addWidget(self.table_info)
+        splitter_details = QSplitter(Qt.Horizontal)
 
-        splitter_down = QtGui.QSplitter(QtCore.Qt.Vertical)
+        splitter_down = QSplitter(Qt.Vertical)
         splitter_down.addWidget(self.operation)
 
-        splitter_transf = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        splitter_transf = QSplitter(Qt.Horizontal)
         splitter_transf.addWidget(self.table_transf)
 
-        splt_contact = QtGui.QSplitter(QtCore.Qt.Vertical)
+        splt_contact = QSplitter(Qt.Vertical)
         splt_contact.addWidget(F_BoxTitle(u"Les contactes"))
         splt_contact.addWidget(self.table_contact)
         splt_contact.resize(900, 1000)
@@ -66,30 +70,36 @@ class OperationWidget(F_Widget):
     """docstring for OperationWidget"""
 
     def __init__(self, parent, *args, **kwargs):
-        F_Widget.__init__(self, parent=parent, *args, **kwargs)
+        super(F_Widget, self).__init__(parent=parent, *args, **kwargs)
 
-        vbox = QtGui.QVBoxLayout()
-        editbox = QtGui.QGridLayout()
         self.parent = parent
+        vbox = QVBoxLayout()
+        editbox = QGridLayout()
 
-        self.search_field = QtGui.QLineEdit()
+        self.search_field = LineEdit()
         self.search_field.textChanged.connect(self.finder)
         self.search_field.setToolTip(u"Taper le nom ou le numéro de "
                                      u"téléphone à chercher")
-        self.empty = QtGui.QLabel(u"")
         editbox.addWidget(self.search_field, 0, 0)
 
-        bicon = QtGui.QIcon.fromTheme('search', QtGui.QIcon(''))
-        search_but = QtGui.QPushButton(bicon, u"")
+        search_but = Button("")
+        search_but.setIcon(QIcon.fromTheme('search', QIcon('')))
         search_but.clicked.connect(self.search)
         editbox.addWidget(search_but, 0, 1)
+        self.empty = F_Label(u"")
         editbox.addWidget(self.empty, 1, 0)
 
-        bicon = QtGui.QIcon.fromTheme('document-new', QtGui.QIcon(''))
-        addgroup_but = QtGui.QPushButton(bicon, u"Nouveau groupe")
+        addgroup_but = Button(u"Nouveau groupe")
+        addgroup_but.setIcon(QIcon.fromTheme('document-new', QIcon('')))
         addgroup_but.clicked.connect(self.addgroup)
 
+        self.contact_grp = Button(u"Envoyer à groupe")
+        self.contact_grp.setIcon(QIcon.fromTheme('document-new', QIcon('')))
+        self.contact_grp.clicked.connect(self.contact_group)
+        self.contact_grp.setEnabled(False)
+
         editbox.addWidget(addgroup_but, 2, 0)
+        editbox.addWidget(self.contact_grp, 1, 0)
 
         vbox.addLayout(editbox)
         self.setLayout(vbox)
@@ -98,30 +108,29 @@ class OperationWidget(F_Widget):
         completion_values = []
         search_term = self.search_field.text()
         try:
-            contacts = PhoneNumber.filter(number__icontains=int(search_term))
+            contacts = Contact.select().where(Contact.number.contains(int(search_term)))
         except ValueError:
-            contacts = Contact.filter(name__icontains=search_term)
+            contacts = Contact.select().where(Contact.name.contains(search_term))
 
         for contact in contacts:
             completion_values.append(contact.__unicode__())
-        completer = QtGui.QCompleter(completion_values, parent=self)
-        completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
+        completer = QCompleter(completion_values, parent=self)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
 
         self.search_field.setCompleter(completer)
 
     def search(self):
 
-        value = self.search_field.text()
+        search_term = self.search_field.text()
         self.empty.setStyleSheet("")
         self.empty.setText(u"")
         contacts = []
 
         try:
-            contacts = PhoneNumber.filter(number__icontains=int(value))
+            contacts = Contact.select().where(Contact.number.contains(int(search_term)))
         except ValueError:
-            contacts = PhoneNumber.filter(contact__name__icontains=value)
-            pass
+            contacts = Contact.select().where(Contact.name.contains(search_term))
 
         try:
             value = contacts.get()
@@ -135,14 +144,14 @@ class OperationWidget(F_Widget):
 
     def addgroup(self):
         """ Affiche un QDialog qui permet d'ajouter un nouveau groupe """
-        try:
-            self.parent.open_dialog(GroupViewWidget, modal=True,
-                                                      table_group=self.parent)
-        except:
-            raise
+        self.parent.open_dialog(GroupViewWidget, modal=True,
+                                table_group=self.parent)
+    def contact_group(self):
+        self.parent.open_dialog(SendGroupViewWidget, modal=True,
+                                table_group=self.parent)
 
 
-class GroupTableWidget(QtGui.QListWidget):
+class GroupTableWidget(QListWidget):
     """affiche tout le nom de tous les groupes"""
 
     def __init__(self, parent, *args, **kwargs):
@@ -157,24 +166,24 @@ class GroupTableWidget(QtGui.QListWidget):
         """ Rafraichir la liste des groupes"""
         self.clear()
         self.addItem(GroupQListWidgetItem(ALL_CONTACTS))
-        for group in Group.filter():
+        for group in Group.select():
             self.addItem(GroupQListWidgetItem(group))
 
     def handleClicked(self):
-        group = self.currentItem()
-        self.parent.table_contact.refresh_(group_id=group.group_id)
+        self.group = self.currentItem()
+        self.parent.operation.contact_grp.setEnabled(True)
+        self.parent.table_contact.refresh_(group_id=self.group.group_id)
 
 
-class GroupQListWidgetItem(QtGui.QListWidgetItem):
+class GroupQListWidgetItem(QListWidgetItem):
 
     def __init__(self, group):
         super(GroupQListWidgetItem, self).__init__()
 
         self.group = group
 
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("images/group.png"),
-                                      QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon = QIcon()
+        icon.addPixmap(QPixmap("{}group.png".format(Config.img_media)), QIcon.Normal, QIcon.Off)
         self.setIcon(icon)
         self.init_text()
 
@@ -182,10 +191,10 @@ class GroupQListWidgetItem(QtGui.QListWidgetItem):
         try:
             self.setText(self.group.name)
         except AttributeError:
-            font = QtGui.QFont()
+            font = QFont()
             font.setBold(True)
             self.setFont(font)
-            self.setTextAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter|QtCore.Qt.AlignCenter)
+            self.setTextAlignment(Qt.AlignHCenter|Qt.AlignVCenter|Qt.AlignCenter)
             self.setText(u"Tous")
 
     @property
@@ -204,65 +213,65 @@ class ContactTableWidget(F_TableWidget):
         F_TableWidget.__init__(self, parent=parent, *args, **kwargs)
 
         self.parent = parent
+        self.hheaders = [u'', u"Nom", u"Numéro"]
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.popup)
 
-        self.header = [u'', u"Nom"]
-        self.max_width = 500
-
-        self.set_data_for()
-        self.refresh(True)
+        self.stretch_columns = [1]
+        self.align_map = {0: 'r'}
+        self.display_vheaders = True
+        self.display_fixed = True
+        self.refresh_()
 
     def refresh_(self, group_id=None, search=None):
         self._reset()
         self.set_data_for(group_id=group_id, search=search)
-        self.refresh(True)
+        self.refresh()
+        pw = 100
+        self.setColumnWidth(0, 20)
+        self.setColumnWidth(1, pw * 2)
+        self.setColumnWidth(2, pw)
+
 
     def set_data_for(self, group_id=None, search=None):
 
         if search:
-            self.data = [("", tel.contact.name)
-                          for tel in PhoneNumber.filter().group_by('contact')
+            self.data = [("", tel.contact.name, tel.number)
+                          for tel in Contact.filter().group_by('contact')
                                             if search.contact == tel.contact]
         else:
-            self.data = [("", contact.name) for contact in Contact.all()]
+            self.data = [("", contact.name, contact.number) for contact in Contact.all()]
 
         if group_id:
-            if group_id == ALL_CONTACTS:
-                qs = ContactGroup.filter().group_by('contact')
-            else:
+            qs = ContactGroup.select()
+            if group_id != ALL_CONTACTS:
                 qs = ContactGroup.filter(group__id=group_id)
-            self.data = [("", contact_gp.contact.name) for contact_gp in qs]
+            self.data = [("", contact_gp.contact.name, contact_gp.contact.number)
+                         for contact_gp in qs]
+
+    def popup(self, pos):
+        if (len(self.data) - 1) < self.selectionModel().selection().indexes()[0].row():
+            return False
+        menu = QMenu()
+        quitAction = menu.addAction("{}".format("kkk"))
+        action = menu.exec_(self.mapToGlobal(pos))
+        if action == quitAction:
+            try:
+                self.data.pop(self.selectionModel()
+                                  .selection().indexes()[1].row())
+            except IndexError:
+                pass
+            self.refresh()
 
     def _item_for_data(self, row, column, data, context=None):
         if column == 0:
-            return QtGui.QTableWidgetItem(QtGui.QIcon("images/info.png"), "")
+            return QTableWidgetItem(QIcon(u"{}user.png".format(Config.img_media)), "")
         return super(ContactTableWidget, self)._item_for_data(row, column,
                                                                data, context)
 
     def click_item(self, row, column, *args):
-
-        number = PhoneNumber.filter(contact__name=self.data[row][1]).get()
-        self.parent.table_info.refresh_(number)
-        self.parent.table_transf.refresh_(number)
-
-
-class InfoTableWidget(F_TableWidget):
-
-    def __init__(self, parent=0, *args, **kwargs):
-        super(InfoTableWidget, self).__init__(parent=parent, *args, **kwargs)
-        self.parent = parent
-        self.max_width = 400
-
-        self.header = [u"Nom", u"Telephone"]
-
-    def refresh_(self, number):
-        self._reset()
-        self.set_data_for(number)
-        self.refresh(True)
-
-    def set_data_for(self, number):
-        self.data = [(tel.contact.name, tel.number)
-                      for tel in PhoneNumber.all()
-                                            if number.contact == tel.contact]
+        contact_number=self.data[row][2]
+        self.parent.table_transf.refresh_(contact_number)
 
 
 class TransfTableWidget(F_TableWidget):
@@ -272,23 +281,32 @@ class TransfTableWidget(F_TableWidget):
     def __init__(self, parent, *args, **kwargs):
         F_TableWidget.__init__(self, parent=parent, *args, **kwargs)
 
-        self.max_width = 400
-
-        self.header = [u"Numero", u"Date du transfert", u"Montant(FCFA)"]
-        self.set_data_for("")
-        self.refresh(True)
+        self.hheaders = [u"Numéro", u"Date du transfert", u"Montant(FCFA)",
+                         u"Reponse"]
+        self.display_vheaders = True
+        self.display_fixed = True
+        self.refresh_(None)
 
     def refresh_(self, number):
         self._reset()
         self.set_data_for(number)
-        self.refresh(True)
+        self.refresh()
+        pw = 100
+        self.setColumnWidth(0, pw)
+        self.setColumnWidth(1, pw * 2)
+        self.setColumnWidth(2, pw + 10)
+        self.setColumnWidth(3, pw * 2)
+
 
     def set_data_for(self, number):
+        if not number:
+            return
 
         try:
-            self.data = [(transf.number,
-                          transf.date.strftime(u"%d/%m/%Y a %Hh:%Mmn"),
-                          transf.amount) for transf in Transfer.all()\
-                           if transf.number.contact == number.contact]
+            self.data = [(transf.contact.number, transf.date.strftime(u"%c"),
+                          transf.amount, transf.response)
+                          for transf in Transfer.filter(contact__number=number)]
         except AttributeError:
-            pass
+            raise
+            self.hheaders = [u"Vide",]
+            self.data = ["", "Aucun transfers", "",]

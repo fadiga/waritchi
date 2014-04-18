@@ -10,40 +10,56 @@ from Common.ui.cmenubar import F_MenuBar
 from configuration import Config
 from help import HTMLEditor
 from ui.addressbook import ContactViewWidget
+from ui.contact_add import ContactNewViewWidget
+from ui.settings import SettgViewWidget
 
 
 class MenuBar(F_MenuBar, F_Widget):
-
     def __init__(self, parent=None, *args, **kwargs):
         F_MenuBar.__init__(self, parent=parent, *args, **kwargs)
 
         self.parent = parent
 
-
         # Menu aller à
         goto_ = self.addMenu(u"&Aller a")
 
-        # Records
-        addressbook = QAction(QIcon("{}archive_add.png".format(Config.img_media)),
-                         u"Gestion des documents", self)
-        addressbook.setShortcut("Ctrl+C")
-        self.connect(addressbook, SIGNAL("triggered()"), self.goto_addressbook)
-        goto_.addAction(addressbook)
-
-        # Menu Options
-        menu_settings = self.addMenu(u"Options")
-        menu_settings.addAction(QIcon('images/help.png'), u"Options",
-                                    self.goto_settings)
         # Address Book
         #   > Add contact
         #   > Find contact
         #   > Delete contact
-        adressbook = self.addMenu(u"Carnet d'adresse")
-        adressbook.addAction(QIcon('images/help.png'), "Ajouter contact",
-                                    self.goto_add_contact)
-        adressbook.addAction(QIcon('images/help.png'),
-                             "Recherher contact", self.goto_search_contact)
+        addressbook = QAction(QIcon("{}archive_add.png".format(Config.img_media)),
+                              u"Carnet d'adresse", self)
+        addressbook.setShortcut("Ctrl+C")
+        self.connect(addressbook, SIGNAL("triggered()"), self.goto_addressbook)
+        goto_.addAction(addressbook)
 
+        addcontact = QAction(QIcon("{}addcontact.png".format(Config.img_media)),
+                             u"Nouvel contact", self)
+        addcontact.setShortcut("Ctrl+N")
+        self.connect(addcontact, SIGNAL("triggered()"), self.goto_add_contact)
+        goto_.addAction(addcontact)
+
+        dashboard = QAction(QIcon("{}dashboard.png".format(Config.img_media)),
+                             u"Tableau de bord", self)
+        dashboard.setShortcut("Ctrl+T")
+        self.connect(dashboard, SIGNAL("triggered()"), self.dashboard)
+        goto_.addAction(dashboard)
+
+        # adressbook.addAction(QIcon('images/help.png'),
+        #                      "Recherher contact", self.goto_search_contact)
+        # Menu Options
+        menu_settings = self.addMenu(u"Options")
+        solde = QAction(QIcon("{}solde.png".format(Config.img_media)),
+                             u"Solde du compte", self)
+        solde.setShortcut("Ctrl+S")
+        self.connect(solde, SIGNAL("triggered()"), self.show_solde)
+        menu_settings.addAction(solde)
+
+        config = QAction(QIcon("{}config.png".format(Config.img_media)),
+                             u"Configuration", self)
+        config.setShortcut("Ctrl+I")
+        self.connect(config, SIGNAL("triggered()"), self.show_config)
+        menu_settings.addAction(config)
 
         # Help
         menu_help = self.addMenu(u"Aide")
@@ -51,13 +67,16 @@ class MenuBar(F_MenuBar, F_Widget):
                                     self.goto_help)
 
 
+    def dashboard(self):
+        from ui.home import HomeViewWidget
+        self.change_main_context(HomeViewWidget)
+
     def goto_addressbook(self):
         self.change_main_context(ContactViewWidget)
 
     #Add contact
     def goto_add_contact(self):
-        QMessageBox.about(self, u"Ajouter contact",
-                                u"<h3>Pour ajouter un contact</h3>")
+        self.open_dialog(ContactNewViewWidget, modal=True)
 
     #Search contact
     def goto_search_contact(self):
@@ -74,7 +93,24 @@ class MenuBar(F_MenuBar, F_Widget):
         QMessageBox.about(self, u"Options",
                                 u"<h3>Settings</h3>")
 
+    def show_config(self):
+        self.open_dialog(SettgViewWidget, modal=True)
+
+    # Solde
+    def show_solde(self):
+        from ussd import get_solde
+        try:
+            solde = get_solde()
+            mgs = u"""<h3>Dernier Solde</h3>
+                      <ul><li>{cpt_p}</li>
+                        <li>{bonus_SMS}</li>
+                        <li>{bonus_orange}</li>
+                      </ul>""".format(cpt_p=solde[0], bonus_SMS=solde[1],
+                                      bonus_orange=solde[2])
+        except Exception as e:
+            mgs = u"Veuillez branché le modem (cléf 3g)"
+        QMessageBox.about(self, u"Solde", mgs)
+
     #Aide
     def goto_help(self):
-
         self.open_dialog(HTMLEditor, modal=True)

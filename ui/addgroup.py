@@ -4,37 +4,37 @@
 
 import sqlite3
 
-from PyQt4 import QtGui
+from PyQt4.QtGui import QVBoxLayout, QGridLayout, QDialog
 
 from models import Group
-from Common.ui.common import F_Widget, F_BoxTitle
+from Common.ui.common import F_Widget, F_BoxTitle, F_Label, LineEdit, Button
 
 
-class GroupViewWidget(QtGui.QDialog, F_Widget):
+class GroupViewWidget(QDialog, F_Widget):
     def __init__(self, table_group, parent, *args, **kwargs):
-        QtGui.QDialog.__init__(self, parent, *args, **kwargs)
+        QDialog.__init__(self, parent, *args, **kwargs)
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QVBoxLayout()
         vbox.addWidget(F_BoxTitle(u"Ajout d'un nouveau groupe"))
         self.parent = table_group
 
-        self.name = QtGui.QLineEdit()
-        editbox = QtGui.QGridLayout()
+        self.name = LineEdit()
+        formbox = QGridLayout()
 
-        self.error_field = QtGui.QLabel(u"")
-        editbox.addWidget(self.error_field, 0, 1)
-        editbox.addWidget(QtGui.QLabel(u"Nom"), 1, 0)
-        editbox.addWidget(self.name, 1, 1)
-        bicon = QtGui.QIcon.fromTheme('document-save',
-                                       QtGui.QIcon(''))
-        butt = QtGui.QPushButton(bicon, u"Enregistrer")
+        self.error_field = F_Label(u"")
+        formbox.addWidget(self.error_field, 0, 1)
+        formbox.addWidget(F_Label(u"Nom"), 1, 0)
+        formbox.addWidget(self.name, 1, 1)
+        butt = Button(u"Enregistrer")
         butt.clicked.connect(self.edit_prod)
-        cancel_but = QtGui.QPushButton(u"Annuler")
+        cancel_but = Button(u"Annuler")
         cancel_but.clicked.connect(self.cancel)
-        editbox.addWidget(butt, 2, 1)
-        editbox.addWidget(cancel_but, 2, 0)
+        formbox.addWidget(butt, 2, 1)
+        formbox.addWidget(cancel_but, 2, 0)
 
-        vbox.addLayout(editbox)
+        formbox.setColumnStretch(3, 3)
+        formbox.setRowStretch(2, 2)
+        vbox.addLayout(formbox)
         self.setLayout(vbox)
 
     def cancel(self):
@@ -46,10 +46,7 @@ class GroupViewWidget(QtGui.QDialog, F_Widget):
 
     def edit_prod(self):
         self.error_field.setStyleSheet("")
-        self.error_field.setText(u"")
-
         name = unicode(self.name.text())
-
         if name == "":
             self.error_field.setStyleSheet("font-size:20px; color: red")
             self.error_field.setText(u"Ce champ est obligatoire.")
