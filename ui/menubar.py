@@ -2,13 +2,12 @@
 # encoding=utf-8
 # maintainer: fad
 
-from PyQt4.QtGui import (QMessageBox, QMenuBar, QIcon, QAction, QPixmap)
-from PyQt4.QtCore import SIGNAL, SLOT
+from PyQt4.QtGui import (QMessageBox, QIcon, QAction)
+from PyQt4.QtCore import SIGNAL
 
 from Common.ui.common import F_Widget
 from Common.ui.cmenubar import F_MenuBar
 from configuration import Config
-from help import HTMLEditor
 from ui.addressbook import ContactViewWidget
 from ui.contact_add import ContactNewViewWidget
 from ui.settings import SettgViewWidget
@@ -100,17 +99,14 @@ class MenuBar(F_MenuBar, F_Widget):
     def show_solde(self):
         from ussd import get_solde
         try:
-            solde = get_solde()
-            mgs = u"""<h3>Dernier Solde</h3>
-                      <ul><li>{cpt_p}</li>
-                        <li>{bonus_SMS}</li>
-                        <li>{bonus_orange}</li>
-                      </ul>""".format(cpt_p=solde[0], bonus_SMS=solde[1],
-                                      bonus_orange=solde[2])
+            mgs = u"""<h4>{}</h4>""".format(get_solde())
         except Exception as e:
+            # print(e)
             mgs = u"Veuillez branché le modem (cléf 3g)"
         QMessageBox.about(self, u"Solde", mgs)
 
     #Aide
     def goto_help(self):
+
+        from help import HTMLEditor
         self.open_dialog(HTMLEditor, modal=True)

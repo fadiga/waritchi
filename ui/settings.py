@@ -21,6 +21,7 @@ class SettgViewWidget(QDialog, F_Widget):
 
         self.baudrate = LineEdit(self.sttg.baudrate)
         self.code_consultation = LineEdit(self.sttg.code_consultation)
+        self.code_consultation.setEchoMode(LineEdit.Password)
         self.code_send = LineEdit(self.sttg.code_send)
         self.port = LineEdit(self.sttg.port)
 
@@ -68,4 +69,3 @@ class SettgViewWidget(QDialog, F_Widget):
             self.cancel()
         except sqlite3.IntegrityError:
             self.port.setStyleSheet("font-size:20px; color: red")
-            self.port.setText(u"%s existe déjà" % name)

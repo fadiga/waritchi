@@ -4,9 +4,9 @@
 ; -------------------------------
 ; Start
 
-  !define MUI_PRODUCT "GARCHIV"
+  !define MUI_PRODUCT "Money"
   !define MUI_FILE "wari_main"
-  !define MUI_VERSION "Ver. 1.0.2"
+  !define MUI_VERSION "Ver. 0.2"
   !define MUI_BRANDINGTEXT "${MUI_PRODUCT} ${MUI_VERSION}"
   !define IMAGES "images"
   !define CIMAGES "cimages"

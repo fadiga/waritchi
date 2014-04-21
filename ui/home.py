@@ -40,7 +40,6 @@ class HomeViewWidget(F_Widget):
         self.number.setFont(QFont("Arial", 17))
         self.number.setToolTip(u"""Taper le nom ou le numéro de téléphone du
                                 beneficiare""")
-
         self.amount = LineEdit()
         self.amount.setFont(QFont("Arial", 15))
         self.amount.setValidator(QIntValidator())
@@ -49,7 +48,7 @@ class HomeViewWidget(F_Widget):
         self.password_field.setFont(QFont("Arial", 15))
         self.password_field.setEchoMode(LineEdit.Password)
         self.password_field.setToolTip(u"Taper le code orange money")
-
+        self.msg_field = F_Label("")
         butt = Button(u"Envoyer")
         butt.clicked.connect(self.get_or_creat_nbr)
 
@@ -60,6 +59,7 @@ class HomeViewWidget(F_Widget):
         formbox.addWidget(self.amount, 1, 1)
         formbox.addWidget(F_Label(u"code"), 0, 2)
         formbox.addWidget(self.password_field, 1, 2)
+        formbox.addWidget(self.msg_field, 0, 5)
         formbox.addWidget(butt, 1, 4)
         formbox.setColumnStretch(5, 3)
 
@@ -77,38 +77,22 @@ class HomeViewWidget(F_Widget):
             return
 
         number = self.number.text().replace('.', '')
+        amount = self.amount.text()
+        Contact.get_or_create(number)
 
-        try:
-            phonenumber = Contact.get(number=number)
-        except:
-            phonenumber = Contact(number=number,contact=None)
-        phonenumber.save()
-        self.send_for(phonenumber)
-
-    def send_for(self, number):
-        data = {"phone_num": [number,],
-                "code": unicode(self.password_field.text()),
-                 "amount": self.amount.text()}
-        if amount:
-            transfer = Transfer()
-            transfer.amount = self.amount.text()
-            transfer.number = number
-            transfer.date = datetime.now()
-            transfer.reponse = multiple_sender(data).message
-            transfer.save()
-            self.number.clear()
-            self.amount.clear()
-            self.table.refresh_()
-            raise_success(u'Confirmation', u'Transfert effectué')
-        else:
-            raise_error(u"Erreur Montant",
-                        u"Donner un montant s'il vous plait.")
+        data = {"phone_num": [number,], "amount": amount,
+                "code": unicode(self.password_field.text())}
+        multiple_sender(data)
+        self.number.clear()
+        self.amount.clear()
+        self.password_field.clear()
+        self.table.refresh_()
+        self.msg_field.setText(u"Transfert ({}) effectué.".format(number))
+        self.msg_field.setStyleSheet("color: green")
 
     def is_complete(self):
         self.amount.setStyleSheet("")
-        self.amount.setText(u"")
         self.password_field.setStyleSheet("")
-        self.password_field.setText(u"")
         if unicode(self.amount.text()) == "":
             self.amount.setStyleSheet("font-size:20px; color: red")
             self.amount.setText(u"Ce champ est obligatoire.")
@@ -125,9 +109,9 @@ class OperationTableWidget(F_TableWidget):
     def __init__(self, parent, *args, **kwargs):
 
         F_TableWidget.__init__(self, parent=parent, *args, **kwargs)
-        self.hheaders = [u'Contact', u'Montant', u'Heure', 'Status']
+        self.hheaders = [u'Contact', u'Montant(FCFA)', u'Heure', 'Status']
         self.stretch_columns = [2]
-        self.align_map = {1: 'l'}
+        self.align_map = {0: 'l', 1: 'r', 2: 'l', 3: 'l'}
         self.display_vheaders = True
         self.display_fixed = True
         self.refresh_()
@@ -138,14 +122,15 @@ class OperationTableWidget(F_TableWidget):
         self.set_data_for()
         self.refresh()
         pw = 100
-        self.setColumnWidth(0, pw * 3)
+        self.setColumnWidth(0, pw * 2)
         self.setColumnWidth(1, pw)
-        self.setColumnWidth(2, pw * 3)
-        self.setColumnWidth(3, 40)
+        self.setColumnWidth(2, pw * 2)
+        self.setColumnWidth(3, pw * 5)
 
 
     def set_data_for(self):
         """ completed the table """
-        self._data = [(transfer.contact.number, formatted_number(transfer.amount) + " fcfa",
+        self._data = [(transfer.contact.display_name(),
+                      formatted_number(transfer.amount),
                       transfer.date.strftime(u"%c"), transfer.response)
-                      for transfer in Transfer.select()]
+                      for transfer in Transfer.select().order_by(Transfer.date.desc())]

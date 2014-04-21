@@ -25,7 +25,7 @@ class Constants(CConstants):
 
     NAME_MAIN = "wari_main.py"
     APP_NAME = "Transfert d'argent"
-    APP_VERSION = u"0.1"
+    APP_VERSION = u"0.3"
     APP_DATE = u"04/2014"
     img_media = os.path.join(os.path.join(ROOT_DIR, "static"), "images/")
     APP_LOGO =  os.path.join(img_media, "logo.png")

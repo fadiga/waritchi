@@ -2,7 +2,6 @@
 # -*- coding: utf8 -*-
 # vim: ai ts=4 sts=4 et sw=4 nu
 # maintainer: Fad
-
 from __future__ import (unicode_literals, absolute_import, division, print_function)
 
 import os, sys; sys.path.append(os.path.abspath('../'))
@@ -28,8 +27,8 @@ def main():
     gettext.install('main_mb', localedir='locale', unicode=True)
     window = MainWindow()
     setattr(F_Window, 'window', window)
-    window.show()
-    # window.showMaximized()
+    # window.show()
+    window.showMaximized()
     sys.exit(app.exec_())
 
 if __name__ == '__main__':

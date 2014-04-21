@@ -2,7 +2,7 @@
 # encoding=utf-8
 # Autor: Fadiga
 
-from models import  (Group, Operator, PhoneNumber, Contact, Version, Settings,
+from models import  (Group, Contact, Version, Settings,
                      ContactGroup, Transfer, Owner, LocalSetting, SettingsAdmin)
 
 
@@ -11,7 +11,7 @@ def setup(drop_tables=False):
 
     did_create = False
 
-    for models in [Group, Operator, Contact, PhoneNumber, LocalSetting, Settings,
+    for models in [Group, Contact, LocalSetting, Settings,
                    ContactGroup, Transfer, Version, Owner, SettingsAdmin]:
         if drop_tables:
             models.drop_table()

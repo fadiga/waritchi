@@ -80,8 +80,6 @@ class SendGroupViewWidget(QDialog, F_Widget):
     def sender(self):
         if not self.iscomplet:
             return
-        print(unicode(self.amount.text()))
-
         data = {"phone_num": self.list_phone_num,
                 "code": unicode(self.password_field.text()),
                 "amount": unicode(self.amount.text())

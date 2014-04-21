@@ -14,7 +14,7 @@ from models import Contact, Transfer, ContactGroup, Group
 from Common.ui.common import F_Widget, F_BoxTitle, Button, LineEdit, F_Label
 from Common.ui.table import F_TableWidget
 from addgroup import GroupViewWidget
-from contact_in_group import ContactGroupViewWidget
+from Common.ui.util import formatted_number
 from send_by_group import SendGroupViewWidget
 from configuration import Config
 
@@ -218,7 +218,7 @@ class ContactTableWidget(F_TableWidget):
         self.customContextMenuRequested.connect(self.popup)
 
         self.stretch_columns = [1]
-        self.align_map = {0: 'r'}
+        self.align_map = {0: 'l'}
         self.display_vheaders = True
         self.display_fixed = True
         self.refresh_()
@@ -253,21 +253,26 @@ class ContactTableWidget(F_TableWidget):
         if (len(self.data) - 1) < self.selectionModel().selection().indexes()[0].row():
             return False
         menu = QMenu()
-        quitAction = menu.addAction("{}".format("kkk"))
+        menu.addAction("Faire un envoi")
+        menu.addAction("modifier le contact")
+        addgroup = menu.addMenu("Ajouter au goupe")
+        delgroup = menu.addMenu("Enlever du goupe")
+        element = self.data[self.selectionModel().selection().indexes()[1].row()][2]
+        no_select = ContactGroup.filter(contact__number=int(element))
+        lt_grp_select = [(i.group.name) for i in no_select]
+
+        [delgroup.addAction(u"{}".format(grp_ct.group.name)) for grp_ct in no_select]
+        [addgroup.addAction(u"{}".format(grp.name)) for grp in Group.all() if not grp.name in lt_grp_select]
         action = menu.exec_(self.mapToGlobal(pos))
-        if action == quitAction:
-            try:
-                self.data.pop(self.selectionModel()
-                                  .selection().indexes()[1].row())
-            except IndexError:
-                pass
-            self.refresh()
+        if action:
+            print(action.text())
+        self.refresh()
 
     def _item_for_data(self, row, column, data, context=None):
         if column == 0:
             return QTableWidgetItem(QIcon(u"{}user.png".format(Config.img_media)), "")
         return super(ContactTableWidget, self)._item_for_data(row, column,
-                                                               data, context)
+                                                              data, context)
 
     def click_item(self, row, column, *args):
         contact_number=self.data[row][2]
@@ -283,6 +288,7 @@ class TransfTableWidget(F_TableWidget):
 
         self.hheaders = [u"Numéro", u"Date du transfert", u"Montant(FCFA)",
                          u"Reponse"]
+        self.align_map = {0: 'l', 1: 'l', 2: 'r', 3: 'l'}
         self.display_vheaders = True
         self.display_fixed = True
         self.refresh_(None)
@@ -304,8 +310,8 @@ class TransfTableWidget(F_TableWidget):
 
         try:
             self.data = [(transf.contact.number, transf.date.strftime(u"%c"),
-                          transf.amount, transf.response)
-                          for transf in Transfer.filter(contact__number=number)]
+                          formatted_number(transf.amount), transf.response)
+                          for transf in Transfer.filter(contact__number=number).order_by(Transfer.date.desc())]
         except AttributeError:
             raise
             self.hheaders = [u"Vide",]

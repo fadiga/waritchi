@@ -2,10 +2,9 @@
 # encoding=utf-8
 # maintainer: Fadiga
 
-from Common.ui.util import formatted_number
 from datetime import datetime
 
-DATE_FMT = u'%A %d %B %Y'
+DATE_FMT = u'%c'
 
 from Common import peewee
 from Common.models import (BaseModel, Owner, Settings, SettingsAdmin, Version)
@@ -17,7 +16,7 @@ class Group(BaseModel):
     name = peewee.CharField(max_length=30, verbose_name=u"Nom", unique=True)
 
     def __unicode__(self):
-        return u"%(name)s" % {"name": self.display_name()}
+        return u"{name}".format(name=self.name)
 
     def display_name(self):
         return self.name.title()
@@ -28,74 +27,39 @@ class Group(BaseModel):
         return d
 
 
-class Operator(BaseModel):
-    """ Operators """
-
-    slug = peewee.CharField(max_length=30, verbose_name=u"Code", unique=True)
-    name = peewee.CharField(max_length=30, verbose_name=u"Nom", unique=True)
-
-    def __unicode__(self):
-        return u"%(name)s" % {"name": self.name}
-
-    def display_name(self):
-        return self.name.title()
-
-
-    def to_dict(self):
-        d = super(Operator, self).to_dict()
-        d.update({'display_name': self.display_name(),
-                  'name': self.name, 'slug': self.slug})
-        return d
-
-
 class Contact(BaseModel):
     """ Contact address book """
 
-    name = peewee.CharField(max_length=100, verbose_name=u"Nom", unique=True)
+    name = peewee.CharField(max_length=200, verbose_name=u"Nom", null=True )
+    number = peewee.IntegerField(verbose_name=u"Numero de téléphone", unique=True)
 
     def __unicode__(self):
-        return u"%(name)s" % {"name": self.display_name()}
+        return u"{name}/{number}".format(name=self.name, number=self.number)
 
     def display_name(self):
-        return self.name.title()
+        from Common.ui.util import formatted_number
+        ctct = "{}".format(formatted_number(self.number))
+        if self.name:
+            ctct = u"({number}) {name}".format(name=self.name.title(), number=ctct)
+        return ctct
+
+    @classmethod
+    def get_or_create(cls, number):
+        try:
+            ctct = cls.get(number=number)
+        except cls.DoesNotExist:
+            ctct = cls.create(number=number)
+        return ctct
 
     def to_dict(self, verbose=False):
         d = super(Contact, self).to_dict()
         d.update({'display_name': self.display_name(),
                   'name': self.name})
         if verbose:
-            d.update({'numbers': [number.to_dict() for number in PhoneNumber \
-                                                        .filter(contact=self)],
+            d.update({'numbers': self.number,
                       'groups': [contact_group.group.to_dict()
                                  for contact_group in ContactGroup \
                                                       .filter(contact=self)]})
-        return d
-
-
-class PhoneNumber(BaseModel):
-    """ Contact number """
-
-    number = peewee.IntegerField(verbose_name=u"Numero de téléphone")
-    operator = peewee.ForeignKeyField(Operator, verbose_name=u"Opérateur")
-    contact = peewee.ForeignKeyField(Contact, verbose_name=u"Contact")
-
-    def __unicode__(self):
-        return u"%(number)s" % {u"number": self.number}
-
-    def display_number(self):
-        return formatted_number(self.number)
-
-    def full_name(self):
-        try:
-            return self.contact.name
-        except:
-            return self.number
-
-    def to_dict(self):
-        d = super(PhoneNumber, self).to_dict()
-        d.update({'number': self.number,
-                  'operator': self.operator.to_dict(),
-                  'display_number': self.display_number()})
         return d
 
 
@@ -106,29 +70,53 @@ class ContactGroup(BaseModel):
     group = peewee.ForeignKeyField(Group, verbose_name=u"Groupe")
 
 
+    @classmethod
+    def get_or_create(cls, contact, group):
+        try:
+            ctct = cls.get(contact=contact, group=group)
+        except cls.DoesNotExist:
+            ctct = cls.create(contact=contact, group=group)
+        return ctct
+
 class Transfer(BaseModel):
     """ Ensemble des  transferts effectués """
 
     amount = peewee.IntegerField(verbose_name=u"Montant")
-    number = peewee.ForeignKeyField(PhoneNumber, verbose_name=u"Téléphone")
-    date = peewee.DateTimeField(verbose_name=u"Date")
+    contact = peewee.ForeignKeyField(Contact, verbose_name=u"Téléphone")
+    date = peewee.DateTimeField(verbose_name=u"Date", default=datetime.now)
+    response = peewee.CharField(verbose_name=u"Reponse", default="Inconu")
 
     def __unicode__(self):
-        return u"%(amount)s/%(number)s" % {"number": self.number,
-                                           "amount": self.amount}
+        return u"{contact}/{amount}/{date}".format(contact=self.contact,
+                                                   amount=self.amount,
+                                                   date=self.strftime(DATE_FMT))
 
     def to_dict(self):
         d = super(Transfer, self).to_dict()
-        d.update({'number': self.number.to_dict(),
+        d.update({'contact': self.contact.to_dict(),
                   'amount': self.amount,
                   'date': self.date.isoformat(),
+                  'response': self.response,
                   'display_date': self.date.strftime(DATE_FMT)})
         return d
 
 
 class LocalSetting(BaseModel):
-    password = peewee.CharField(max_length=30, verbose_name=(u"Nom"))
-    password_orange = peewee.CharField(max_length=30,
-                                         verbose_name=(u"Mot de passe Orange"))
-    password_malitel = peewee.CharField(max_length=30,
-                                        verbose_name=(u"Mot de passe Malitel"))
+    slug = peewee.IntegerField(default=1)
+    baudrate = peewee.CharField(max_length=30, verbose_name=(u"Mot de passe"),
+                                default="115200")
+    port = peewee.CharField(max_length=100, verbose_name=(u"PORT"), default="/dev/ttyUSB3")
+    code_consultation = peewee.CharField(max_length=100, verbose_name=(u"Consultation",),
+                                        null=True)
+    code_send = peewee.CharField(max_length=100, verbose_name=(u"Envoie"), null=True)
+
+    def __unicode__(self):
+        return u"{port}".format(port=self.port)
+
+    @classmethod
+    def get_or_create(cls, slug):
+        try:
+            ctct = cls.get(slug=slug)
+        except cls.DoesNotExist:
+            ctct = cls.create(slug=slug)
+        return ctct
