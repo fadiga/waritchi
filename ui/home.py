@@ -4,14 +4,16 @@
 # maintainer: Fad
 from __future__ import (unicode_literals, absolute_import, division, print_function)
 
-from datetime import datetime
-
 from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QVBoxLayout, QGridLayout, QDialog, QIntValidator, QFont
+from PyQt4.QtGui import (QVBoxLayout, QTextEdit, QHBoxLayout, QGridLayout,
+                         QGroupBox, QIntValidator, QFont, QPixmap)
 
+from models import SettingsAdmin
+from static import Constants
 from Common.ui.common import (F_Widget, F_PageTitle, Button, F_Label, LineEdit,
-                              ErrorLabel, EnterTabbedLineEdit)
-from Common.ui.util import formatted_number, raise_success, raise_error
+                              EnterTabbedLineEdit, PyTextViewer,
+                              Button_save)
+from Common.ui.util import formatted_number
 from Common.ui.table import F_TableWidget
 from database import Transfer, Contact
 from ussd import multiple_sender
@@ -24,15 +26,30 @@ class HomeViewWidget(F_Widget):
         super(HomeViewWidget, self).__init__(parent=parent,
                                                         *args, **kwargs)
 
+        self.parent = parent
+
+        self.parentWidget().setWindowTitle(u"Bienvenu sur transfert Wari")
+        self.title = F_PageTitle(u"Tranfert")
+        vbox = QHBoxLayout(self)
+        vbox.addWidget(self.title)
+        self.sttg = SettingsAdmin().select().where(SettingsAdmin.id==1).get()
+        if self.sttg.can_use():
+            self.createHomeGroupBox()
+            vbox.addWidget(self.homegbox)
+        else:
+            self.activationGroupBox()
+            vbox.addWidget(self.topLeftGroupBoxBtt)
+        self.setLayout(vbox)
+
+    def createHomeGroupBox(self):
+        self.homegbox = QGroupBox()
+
         self.table = OperationTableWidget(parent=self)
         table_box = QVBoxLayout()
         self.title_table = F_PageTitle(u"Historique des transferts")
         table_box.addWidget(self.title_table)
         table_box.addWidget(self.table)
 
-        self.parent = parent
-        self.parentWidget().setWindowTitle(u"Bienvenu sur transfert Wari")
-        self.title = F_PageTitle(u"Tranfert")
         # form transfer
         self.number = LineEdit()
         self.number.setInputMask("D9.99.99.99")
@@ -68,7 +85,39 @@ class HomeViewWidget(F_Widget):
         transfer_box.addWidget(self.title)
         transfer_box.addLayout(formbox)
         transfer_box.addLayout(table_box)
-        self.setLayout(transfer_box)
+        # self.setLayout(transfer_box)
+        self.homegbox.setLayout(transfer_box)
+
+
+    def activationGroupBox(self):
+        self.topLeftGroupBoxBtt = QGroupBox(self.tr("Nouvelle license"))
+        self.setWindowTitle(u"License")
+        self.parentWidget().setWindowTitle(u"Activation de la license")
+
+        self.code_field = PyTextViewer(u"""Vous avez besoin du code ci desous
+                                           pour l'activation:<hr> <b>{code}</b><hr>
+                                           <h4>Contacts:</h4>{contact}"""
+                                        .format(code=SettingsAdmin().select().get().clean_mac,
+                                         contact=Constants.TEL_AUT))
+        self.name_field = LineEdit()
+        self.license_field = QTextEdit()
+        self.pixmap = QPixmap("")
+        self.image = F_Label(self)
+        self.image.setPixmap(self.pixmap)
+
+        butt = Button_save(u"Enregistrer")
+        butt.clicked.connect(self.add_lience)
+
+        editbox = QGridLayout()
+        editbox.addWidget(F_Label(u"Nom: "), 0, 0)
+        editbox.addWidget(self.name_field, 0, 1)
+        editbox.addWidget(F_Label(u"License: "), 1, 0)
+        editbox.addWidget(self.license_field, 1, 1)
+        editbox.addWidget(self.code_field, 1, 2)
+        editbox.addWidget(self.image, 5, 1)
+        editbox.addWidget(butt, 6, 1)
+
+        self.topLeftGroupBoxBtt.setLayout(editbox)
 
     def get_or_creat_nbr(self):
         ''' add operation '''
@@ -76,18 +125,19 @@ class HomeViewWidget(F_Widget):
         if not self.is_complete():
             return
 
-        number = self.number.text().replace('.', '')
-        amount = self.amount.text()
+        number = unicode(self.number.text().replace('.', ''))
+        amount = unicode(self.amount.text())
         Contact.get_or_create(number)
 
         data = {"phone_num": [number,], "amount": amount,
                 "code": unicode(self.password_field.text())}
+        # print(data)
         multiple_sender(data)
         self.number.clear()
         self.amount.clear()
         self.password_field.clear()
         self.table.refresh_()
-        self.msg_field.setText(u"Transfert ({}) effectué.".format(number))
+        self.msg_field.setText(u"Transfert  vers ({}) a été effectué.".format(number))
         self.msg_field.setStyleSheet("color: green")
 
     def is_complete(self):
@@ -102,6 +152,36 @@ class HomeViewWidget(F_Widget):
             self.password_field.setText(u"Ce champ est obligatoire.")
             return False
         return True
+
+    def check_license(self, license):
+
+        self.flog = False
+
+        if (SettingsAdmin().is_valide_mac(license)):
+            self.pixmap = QPixmap(u"{}accept.png".format(Constants.img_cmedia))
+            self.image.setToolTip("License correct")
+            self.flog = True
+        else:
+            self.pixmap = QPixmap(u"{}decline.png".format(Constants.img_cmedia))
+            self.image.setToolTip("License incorrect")
+        self.image.setPixmap(self.pixmap)
+
+    def add_lience(self):
+        """ add User """
+        name = unicode(self.name_field.text()).strip()
+        license = unicode(self.license_field.toPlainText())
+        self.check_license(license)
+
+        if self.flog:
+            sttg = self.sttg
+            sttg.user = name
+            sttg.license = license
+            sttg.save()
+            raise_success(u"Confirmation",
+                          u"""La license (<b>{}</b>) à éte bien enregistré pour cette
+                           machine.\n
+                           Elle doit être bien gardé""".format(license))
+            self.goto_archi()
 
 
 class OperationTableWidget(F_TableWidget):
