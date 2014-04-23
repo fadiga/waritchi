@@ -17,7 +17,7 @@ class SettgViewWidget(QDialog, F_Widget):
         vbox = QVBoxLayout()
         vbox.addWidget(F_BoxTitle(u" Configuration "))
 
-        self.sttg = LocalSetting.get_or_create(slug=1)
+        self.sttg = LocalSetting.get(LocalSetting.slug==1)
 
         self.baudrate = LineEdit(self.sttg.baudrate)
         self.code_consultation = LineEdit(self.sttg.code_consultation)

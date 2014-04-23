@@ -19,23 +19,24 @@ from __future__ import print_function
 # import logging
 
 from gsmmodem.modem import GsmModem
-from models import Transfer, Contact
+from models import Transfer, Contact, LocalSetting
 
-# USSD_STRING = '#123#'
+
+
 PIN = None # SIM card PIN (if any)
 PIN = 0000
-
 try:
-    from models import LocalSetting
-    sttg = LocalSetting.get()
+    sttg = LocalSetting.get(LocalSetting.slug==1)
     PORT = sttg.port
     BAUDRATE = sttg.baudrate
     USSD_STRING = sttg.code_consultation
-except:
+except Exception , e:
+    print(e)
     pass
 
 
 def send_ussd(USSD_STRING):
+
     #logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
     modem = GsmModem(PORT, BAUDRATE)
     modem.connect(PIN)
@@ -66,7 +67,11 @@ def multiple_sender(data):
 
 def get_solde():
     # print(send_ussd(USSD_STRING).message)
-    return send_ussd(USSD_STRING).message
+    try:
+        response = send_ussd(USSD_STRING).message
+    except Exception , e:
+        response = u"<h4>Veuillez changé le port dans la config </h4>\n \n {}".format(e)
+    return response
 
 
 def format_str(phone_num, amount, code):

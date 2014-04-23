@@ -34,7 +34,9 @@ def main():
 if __name__ == '__main__':
     setup()
 
-    if not Config.LOGIN:
+    from models import SettingsAdmin
+    if (not Config.LOGIN and
+        SettingsAdmin().get(SettingsAdmin.id==1).can_use()):
         john_doe()
         main()
     elif LoginWidget().exec_() == QDialog.Accepted:

@@ -6,7 +6,7 @@
 from PyQt4.QtGui import (QSplitter, QHBoxLayout, QVBoxLayout, QGridLayout,
                          QCompleter, QTableWidgetItem, QPixmap, QFont,
                          QListWidget, QListWidgetItem, QIcon, QMenu)
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, SIGNAL
 
 
 from models import Contact, Transfer, ContactGroup, Group
@@ -257,6 +257,8 @@ class ContactTableWidget(F_TableWidget):
         menu.addAction("modifier le contact")
         addgroup = menu.addMenu("Ajouter au goupe")
         delgroup = menu.addMenu("Enlever du goupe")
+
+        self.connect(addgroup, SIGNAL('triggered()'), self.onFilmSet)
         element = self.data[self.selectionModel().selection().indexes()[1].row()][2]
         no_select = ContactGroup.filter(contact__number=int(element))
         lt_grp_select = [(i.group.name) for i in no_select]
@@ -267,6 +269,9 @@ class ContactTableWidget(F_TableWidget):
         if action:
             print(action.text())
         self.refresh()
+
+        def onFilmSet(self):
+            print("jjjjjjjjjjjjj")
 
     def _item_for_data(self, row, column, data, context=None):
         if column == 0:

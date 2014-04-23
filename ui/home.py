@@ -30,7 +30,7 @@ class HomeViewWidget(F_Widget):
 
         self.parentWidget().setWindowTitle(u"Bienvenu sur transfert Wari")
         self.title = F_PageTitle(u"Tranfert")
-        vbox = QHBoxLayout(self)
+        vbox = QVBoxLayout(self)
         vbox.addWidget(self.title)
         self.sttg = SettingsAdmin().select().where(SettingsAdmin.id==1).get()
         if self.sttg.can_use():

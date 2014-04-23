@@ -101,7 +101,8 @@ class MenuBar(F_MenuBar, F_Widget):
         try:
             mgs = u"""<h4>{}</h4>""".format(get_solde())
         except Exception as e:
-            # print(e)
+            raise
+            print(e)
             mgs = u"Veuillez branché le modem (cléf 3g)"
         QMessageBox.about(self, u"Solde", mgs)
 

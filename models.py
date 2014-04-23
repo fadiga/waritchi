@@ -103,9 +103,9 @@ class Transfer(BaseModel):
 
 class LocalSetting(BaseModel):
     slug = peewee.IntegerField(default=1)
-    baudrate = peewee.CharField(max_length=30, verbose_name=(u"Mot de passe"),
+    baudrate = peewee.CharField(max_length=30, verbose_name=(u"baudrate"),
                                 default="115200")
-    port = peewee.CharField(max_length=100, verbose_name=(u"PORT"), default="/dev/ttyUSB3")
+    port = peewee.CharField(max_length=100, verbose_name=(u"PORT"), default="/dev/ttyUSB2")
     code_consultation = peewee.CharField(max_length=100, verbose_name=(u"Consultation",),
                                         null=True)
     code_send = peewee.CharField(max_length=100, verbose_name=(u"Envoie"), null=True)
@@ -117,6 +117,7 @@ class LocalSetting(BaseModel):
     def get_or_create(cls, slug):
         try:
             ctct = cls.get(slug=slug)
+            print(ctct)
         except cls.DoesNotExist:
             ctct = cls.create(slug=slug)
         return ctct
