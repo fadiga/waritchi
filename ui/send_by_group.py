@@ -2,11 +2,9 @@
 # encoding=utf-8
 # maintainer: Fadiga
 
-import sqlite3
-
 from PyQt4.QtGui import QVBoxLayout, QGridLayout, QDialog, QIntValidator, QFont
 
-from models import Transfer, Group, ContactGroup
+from models import Group, ContactGroup
 from Common.ui.common import (F_Widget, F_BoxTitle, F_Label, LineEdit,
                               Button, ErrorLabel, EnterTabbedLineEdit)
 from ussd import multiple_sender
@@ -20,8 +18,7 @@ class SendGroupViewWidget(QDialog, F_Widget):
         group_id = self.parent.table_group.group.group_id
         self.group = Group.select().where(Group.id==group_id).get()
         vbox = QVBoxLayout()
-        vbox.addWidget(F_BoxTitle(u"<h2>Envoie pour le groupe <b>{}</b></h2>".format(self.group.name)))
-        self.order_number = LineEdit()
+        vbox.addWidget(F_BoxTitle(u"<h2>Envoi pour les ({0}) contactes du groupe <b>{1}</b></h2>".format(len(self.group.contacts), self.group.name)))
 
         # form transfer
         self.amount = LineEdit()

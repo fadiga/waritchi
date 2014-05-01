@@ -15,6 +15,7 @@ from Common.ui.common import F_Widget, F_BoxTitle, Button, LineEdit
 from Common.ui.table import F_TableWidget
 from addgroup import GroupViewWidget
 from Common.ui.util import formatted_number
+from send_by_contact import SendByCtViewWidget
 from send_by_group import SendGroupViewWidget
 from configuration import Config
 
@@ -273,6 +274,7 @@ class ContactTableWidget(F_TableWidget):
 
     def send_money(self, ctct):
         print("send_money ", ctct)
+        self.parent.parent.open_dialog(SendByCtViewWidget, modal=True, ctct_id=ctct)
 
     def _item_for_data(self, row, column, data, context=None):
         if column == 0:

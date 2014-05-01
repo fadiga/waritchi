@@ -28,8 +28,9 @@ class Group(BaseModel):
         d.update({'name': self.name, 'display_name': self.display_name()})
         return d
 
-    # def contacts(self):
-    #     ContactGroup.filter(contact.group)
+    @property
+    def contacts(self):
+        return [p.contact for p in ContactGroup.select().where(ContactGroup.group==self)]
 
 
 class Contact(BaseModel):
