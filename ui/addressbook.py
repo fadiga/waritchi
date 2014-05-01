@@ -5,7 +5,8 @@
 
 from PyQt4.QtGui import (QSplitter, QHBoxLayout, QVBoxLayout, QGridLayout, QAction,
                          QCompleter, QTableWidgetItem, QPixmap, QFont,
-                         QListWidget, QListWidgetItem, QIcon, QMenu)
+                         QListWidget, QListWidgetItem, QIcon, QMenu,
+                         QAbstractItemView)
 from PyQt4.QtCore import Qt, SIGNAL
 
 
@@ -158,9 +159,37 @@ class GroupTableWidget(QListWidget):
         super(GroupTableWidget, self).__init__(parent)
         self.parent = parent
         self.setAutoScroll(True)
+        self.setDragDropMode(QAbstractItemView.DragDrop)
+        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.setAutoFillBackground(True)
         self.itemSelectionChanged.connect(self.handleClicked)
         self.refresh_()
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            super(GroupTableWidget, self).dragEnterEvent(event)
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+        else:
+            super(GroupTableWidget, self).dragMoveEvent(event)
+
+    def dropEvent(self, event):
+        print 'dropEvent', event
+        if event.mimeData().hasUrls():
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+            links = []
+            for url in event.mimeData().urls():
+                links.append(str(url.toLocalFile()))
+            self.emit(SIGNAL("dropped"), links)
+        else:
+            event.setDropAction(Qt.MoveAction)
+            super(GroupTableWidget, self).dropEvent(event)
 
     def refresh_(self):
         """ Rafraichir la liste des groupes"""

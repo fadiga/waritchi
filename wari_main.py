@@ -41,4 +41,3 @@ if __name__ == '__main__':
         main()
     elif LoginWidget().exec_() == QDialog.Accepted:
         main()
-self.emit(MYSIGNAL, "jacek")
