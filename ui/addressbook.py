@@ -3,7 +3,7 @@
 # maintainer: Fadiga
 
 
-from PyQt4.QtGui import (QSplitter, QHBoxLayout, QVBoxLayout, QGridLayout,
+from PyQt4.QtGui import (QSplitter, QHBoxLayout, QVBoxLayout, QGridLayout, QAction,
                          QCompleter, QTableWidgetItem, QPixmap, QFont,
                          QListWidget, QListWidgetItem, QIcon, QMenu)
 from PyQt4.QtCore import Qt, SIGNAL
@@ -181,7 +181,6 @@ class GroupQListWidgetItem(QListWidgetItem):
         super(GroupQListWidgetItem, self).__init__()
 
         self.group = group
-
         icon = QIcon()
         icon.addPixmap(QPixmap("{}group.png".format(Config.img_media)), QIcon.Normal, QIcon.Off)
         self.setIcon(icon)
@@ -217,6 +216,8 @@ class ContactTableWidget(F_TableWidget):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.popup)
 
+        # self.setAcceptDrops(True)
+        self.setDragEnabled(True)
         self.stretch_columns = [1]
         self.align_map = {0: 'l'}
         self.display_vheaders = True
@@ -250,28 +251,57 @@ class ContactTableWidget(F_TableWidget):
                          for contact_gp in qs]
 
     def popup(self, pos):
-        if (len(self.data) - 1) < self.selectionModel().selection().indexes()[0].row():
+        row = self.selectionModel().selection().indexes()[0].row()
+        if (len(self.data) - 1) < row:
             return False
+        self.contact = Contact.get(Contact.number==int(self.item(row, 2).text().replace(' ', '')))
+
         menu = QMenu()
-        menu.addAction("Faire un envoi")
-        menu.addAction("modifier le contact")
-        addgroup = menu.addMenu("Ajouter au goupe")
-        delgroup = menu.addMenu("Enlever du goupe")
-
-        self.connect(addgroup, SIGNAL('triggered()'), self.onFilmSet)
+        menu.addAction(QIcon("{}transfer.png".format(Config.img_media)),
+                       u"Faire un envoi", lambda: self.send_money(self.contact))
+        menu.addAction(QIcon("{}edit_contact.png".format(Config.img_media)),
+                       u"modifier le contact", lambda: self.edit_contacts(self.contact))
+        addgroup = menu.addMenu(u"Ajouter au groupe")
+        delgroup = menu.addMenu(u"Enlever du groupe")
         element = self.data[self.selectionModel().selection().indexes()[1].row()][2]
+        # # Enlever du groupe
         no_select = ContactGroup.filter(contact__number=int(element))
+        [delgroup.addAction(u"{}".format(grp_ct.group.name), lambda: self.del_grp(u"{}".format(grp_ct.group.name))) for grp_ct in no_select]
+        # # Ajout au groupe
         lt_grp_select = [(i.group.name) for i in no_select]
-
-        [delgroup.addAction(u"{}".format(grp_ct.group.name)) for grp_ct in no_select]
-        [addgroup.addAction(u"{}".format(grp.name)) for grp in Group.all() if not grp.name in lt_grp_select]
-        action = menu.exec_(self.mapToGlobal(pos))
-        if action:
-            print(action.text())
+        [addgroup.addAction(u"{}".format(grp.name),
+                            lambda: self.add_grp(u"{}".format(grp.name))) for grp in Group.all() if not grp.name in lt_grp_select]
+        self.action = menu.exec_(self.mapToGlobal(pos))
+        # self.delgrp = menu.exec_(delgroup.mapToGlobal(pos))
+        # self.adgrp = menu.exec_(addgroup.mapToGlobal(pos))
+        # if self.delgrp:
+        #     print(self.delgrp.text())
+        # if self.adgrp:
+        #     print(self.adgrp.text())
+        # if self.action:
+        #     self.value = self.action.text()
+        #     print(self.value)
         self.refresh()
 
-        def onFilmSet(self):
-            print("jjjjjjjjjjjjj")
+    def del_grp(self, grpname):
+        print(grpname)
+        group = Group.get(Group.name==grpname)
+        contactgrp = ContactGroup.select().where(ContactGroup.group==group, ContactGroup.contact==self.contact).get()
+        contactgrp.delete()
+        print(contactgrp)
+        self.refresh()
+
+    def add_grp(self, grpname):
+        group = Group.get(Group.name==grpname)
+        print(grpname)
+        # ContactGroup.create(group=group, contact=self.contact)
+        self.refresh()
+
+    def edit_contacts(self, ctct):
+        print("edit_contacts "+ ctct)
+
+    def send_money(self, ctct):
+        print("send_money " + ctct)
 
     def _item_for_data(self, row, column, data, context=None):
         if column == 0:

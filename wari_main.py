@@ -27,8 +27,8 @@ def main():
     gettext.install('main_mb', localedir='locale', unicode=True)
     window = MainWindow()
     setattr(F_Window, 'window', window)
-    # window.show()
-    window.showMaximized()
+    window.show()
+    # window.showMaximized()
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
@@ -41,3 +41,4 @@ if __name__ == '__main__':
         main()
     elif LoginWidget().exec_() == QDialog.Accepted:
         main()
+self.emit(MYSIGNAL, "jacek")

@@ -12,6 +12,8 @@ from Common.models import (BaseModel, Owner, Settings, SettingsAdmin, Version)
 
 class Group(BaseModel):
     """ Group of contacts """
+    class Meta:
+        order_by = ('name',)
 
     name = peewee.CharField(max_length=30, verbose_name=u"Nom", unique=True)
 
@@ -29,6 +31,9 @@ class Group(BaseModel):
 
 class Contact(BaseModel):
     """ Contact address book """
+    class Meta:
+        order_by = ('name', 'number')
+
 
     name = peewee.CharField(max_length=200, verbose_name=u"Nom", null=True )
     number = peewee.IntegerField(verbose_name=u"Numero de téléphone", unique=True)
@@ -80,6 +85,8 @@ class ContactGroup(BaseModel):
 
 class Transfer(BaseModel):
     """ Ensemble des  transferts effectués """
+    class Meta:
+        order_by = ('date', 'contact')
 
     amount = peewee.IntegerField(verbose_name=u"Montant")
     contact = peewee.ForeignKeyField(Contact, verbose_name=u"Téléphone")
