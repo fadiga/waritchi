@@ -28,6 +28,9 @@ class Group(BaseModel):
         d.update({'name': self.name, 'display_name': self.display_name()})
         return d
 
+    # def contacts(self):
+    #     ContactGroup.filter(contact.group)
+
 
 class Contact(BaseModel):
     """ Contact address book """
@@ -74,7 +77,6 @@ class ContactGroup(BaseModel):
     contact = peewee.ForeignKeyField(Contact, verbose_name=u"Contact")
     group = peewee.ForeignKeyField(Group, verbose_name=u"Groupe")
 
-
     @classmethod
     def get_or_create(cls, contact, group):
         try:
@@ -82,6 +84,7 @@ class ContactGroup(BaseModel):
         except cls.DoesNotExist:
             ctct = cls.create(contact=contact, group=group)
         return ctct
+
 
 class Transfer(BaseModel):
     """ Ensemble des  transferts effectués """

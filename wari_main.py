@@ -12,6 +12,7 @@ from PyQt4.QtGui import QApplication, QDialog
 
 from database import setup
 from configuration import Config
+from models import SettingsAdmin
 
 from Common.ui.window import F_Window
 from Common.ui.login import LoginWidget, john_doe
@@ -34,7 +35,6 @@ def main():
 if __name__ == '__main__':
     setup()
 
-    from models import SettingsAdmin
     if (not Config.LOGIN and
         SettingsAdmin().get(SettingsAdmin.id==1).can_use()):
         john_doe()

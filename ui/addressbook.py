@@ -3,23 +3,22 @@
 # maintainer: Fadiga
 
 
-from PyQt4.QtGui import (QSplitter, QHBoxLayout, QVBoxLayout, QGridLayout, QAction,
-                         QCompleter, QTableWidgetItem, QPixmap, QFont,
-                         QListWidget, QListWidgetItem, QIcon, QMenu,
-                         QAbstractItemView)
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtGui import (QSplitter, QHBoxLayout, QVBoxLayout, QGridLayout,
+                         QTableWidgetItem, QPixmap, QFont, QListWidget,
+                         QListWidgetItem, QIcon, QMenu)
+from PyQt4.QtCore import Qt, SIGNAL, SLOT
 
 
 from models import Contact, Transfer, ContactGroup, Group
 
-from Common.ui.common import F_Widget, F_BoxTitle, Button, LineEdit, F_Label
+from Common.ui.common import F_Widget, F_BoxTitle, Button, LineEdit
 from Common.ui.table import F_TableWidget
 from addgroup import GroupViewWidget
 from Common.ui.util import formatted_number
 from send_by_group import SendGroupViewWidget
 from configuration import Config
 
-ALL_CONTACTS = -1
+ALL_CONTACTS = "TOUS"
 
 
 class ContactViewWidget(F_Widget):
@@ -78,7 +77,7 @@ class OperationWidget(F_Widget):
         editbox = QGridLayout()
 
         self.search_field = LineEdit()
-        self.search_field.textChanged.connect(self.finder)
+        # self.search_field.textChanged.connect(self.search)
         self.search_field.setToolTip(u"Taper le nom ou le numéro de "
                                      u"téléphone à chercher")
         editbox.addWidget(self.search_field, 0, 0)
@@ -87,8 +86,8 @@ class OperationWidget(F_Widget):
         search_but.setIcon(QIcon.fromTheme('search', QIcon('')))
         search_but.clicked.connect(self.search)
         editbox.addWidget(search_but, 0, 1)
-        self.empty = F_Label(u"")
-        editbox.addWidget(self.empty, 1, 0)
+        # self.empty = F_Label(u"")
+        # editbox.addWidget(self.empty, 1, 0)
 
         addgroup_but = Button(u"Nouveau groupe")
         addgroup_but.setIcon(QIcon.fromTheme('document-new', QIcon('')))
@@ -105,43 +104,16 @@ class OperationWidget(F_Widget):
         vbox.addLayout(editbox)
         self.setLayout(vbox)
 
-    def finder(self):
-        completion_values = []
-        search_term = self.search_field.text()
-        try:
-            contacts = Contact.select().where(Contact.number.contains(int(search_term)))
-        except ValueError:
-            contacts = Contact.select().where(Contact.name.contains(search_term))
-
-        for contact in contacts:
-            completion_values.append(contact.__unicode__())
-        completer = QCompleter(completion_values, parent=self)
-        completer.setCaseSensitivity(Qt.CaseInsensitive)
-        completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
-
-        self.search_field.setCompleter(completer)
-
     def search(self):
 
         search_term = self.search_field.text()
-        self.empty.setStyleSheet("")
-        self.empty.setText(u"")
-        contacts = []
+        self.search_field.setStyleSheet("")
+        self.search_field.setText(u"")
 
-        try:
-            contacts = Contact.select().where(Contact.number.contains(int(search_term)))
-        except ValueError:
-            contacts = Contact.select().where(Contact.name.contains(search_term))
-
-        try:
-            value = contacts.get()
-            self.parent.table_contact.refresh_(search=value)
-            self.search_field.clear()
-        except AttributeError:
-            pass
-        except:
-            self.empty.setStyleSheet("font-size:20px; color: red")
-            self.empty.setText(u"%s n'existe pas" % value)
+        self.parent.table_contact.refresh_(search=search_term)
+        self.search_field.clear()
+        # self.search_field.setStyleSheet("font-size:20px; color: red")
+        # self.search_field.setToolTip(u"{} n'existe pas".format(search_term))
 
     def addgroup(self):
         """ Affiche un QDialog qui permet d'ajouter un nouveau groupe """
@@ -159,37 +131,24 @@ class GroupTableWidget(QListWidget):
         super(GroupTableWidget, self).__init__(parent)
         self.parent = parent
         self.setAutoScroll(True)
-        self.setDragDropMode(QAbstractItemView.DragDrop)
-        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.setAutoFillBackground(True)
         self.itemSelectionChanged.connect(self.handleClicked)
         self.refresh_()
 
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls():
-            event.accept()
-        else:
-            super(GroupTableWidget, self).dragEnterEvent(event)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.popup)
 
-    def dragMoveEvent(self, event):
-        if event.mimeData().hasUrls():
-            event.setDropAction(Qt.CopyAction)
-            event.accept()
-        else:
-            super(GroupTableWidget, self).dragMoveEvent(event)
+    def popup(self, pos):
+        row = self.selectionModel().selection().indexes()[0].row()
+        if row < 1:
+            return
+        menu = QMenu()
+        delaction = menu.addAction("Supprimer")
+        action = menu.exec_(self.mapToGlobal(pos))
 
-    def dropEvent(self, event):
-        print 'dropEvent', event
-        if event.mimeData().hasUrls():
-            event.setDropAction(Qt.CopyAction)
-            event.accept()
-            links = []
-            for url in event.mimeData().urls():
-                links.append(str(url.toLocalFile()))
-            self.emit(SIGNAL("dropped"), links)
-        else:
-            event.setDropAction(Qt.MoveAction)
-            super(GroupTableWidget, self).dropEvent(event)
+        if action == delaction:
+            Group.get(Group.name==self.item(row).text()).delete_instance()
+            self.refresh_()
 
     def refresh_(self):
         """ Rafraichir la liste des groupes"""
@@ -262,28 +221,24 @@ class ContactTableWidget(F_TableWidget):
         self.setColumnWidth(1, pw * 2)
         self.setColumnWidth(2, pw)
 
-
     def set_data_for(self, group_id=None, search=None):
-
-        if search:
-            self.data = [("", tel.contact.name, tel.number)
-                          for tel in Contact.filter().group_by('contact')
-                                            if search.contact == tel.contact]
-        else:
-            self.data = [("", contact.name, contact.number) for contact in Contact.all()]
-
-        if group_id:
-            qs = ContactGroup.select()
-            if group_id != ALL_CONTACTS:
-                qs = ContactGroup.filter(group__id=group_id)
+        if isinstance(group_id, int):
+            qs = ContactGroup.select().where(ContactGroup.group==Group.get(Group.id==group_id))
             self.data = [("", contact_gp.contact.name, contact_gp.contact.number)
                          for contact_gp in qs]
+        else:
+            qs = Contact.select()
+            if search:
+                print(search)
+                qs = qs.where(Contact.number.contains(search) | Contact.name.contains(search))
+                print(qs)
+            self.data = [("", contact.name, contact.number) for contact in qs]
 
     def popup(self, pos):
         row = self.selectionModel().selection().indexes()[0].row()
         if (len(self.data) - 1) < row:
             return False
-        self.contact = Contact.get(Contact.number==int(self.item(row, 2).text().replace(' ', '')))
+        self.contact = Contact.get(Contact.number==int(self.data[row][2]))
 
         menu = QMenu()
         menu.addAction(QIcon("{}transfer.png".format(Config.img_media)),
@@ -292,45 +247,32 @@ class ContactTableWidget(F_TableWidget):
                        u"modifier le contact", lambda: self.edit_contacts(self.contact))
         addgroup = menu.addMenu(u"Ajouter au groupe")
         delgroup = menu.addMenu(u"Enlever du groupe")
-        element = self.data[self.selectionModel().selection().indexes()[1].row()][2]
         # # Enlever du groupe
-        no_select = ContactGroup.filter(contact__number=int(element))
-        [delgroup.addAction(u"{}".format(grp_ct.group.name), lambda: self.del_grp(u"{}".format(grp_ct.group.name))) for grp_ct in no_select]
+        no_select = ContactGroup.filter(contact__number=int(self.data[row][2]))
+        [delgroup.addAction(u"{}".format(grp_ct.group.name), lambda grp_ct=grp_ct: self.del_grp(grp_ct)) for grp_ct in no_select]
         # # Ajout au groupe
         lt_grp_select = [(i.group.name) for i in no_select]
-        [addgroup.addAction(u"{}".format(grp.name),
-                            lambda: self.add_grp(u"{}".format(grp.name))) for grp in Group.all() if not grp.name in lt_grp_select]
+        [addgroup.addAction(u"{}".format(grp.name), lambda grp=grp: self.add_grp(grp))
+                            for grp in Group.select() if not grp.name in lt_grp_select]
         self.action = menu.exec_(self.mapToGlobal(pos))
-        # self.delgrp = menu.exec_(delgroup.mapToGlobal(pos))
-        # self.adgrp = menu.exec_(addgroup.mapToGlobal(pos))
-        # if self.delgrp:
-        #     print(self.delgrp.text())
-        # if self.adgrp:
-        #     print(self.adgrp.text())
-        # if self.action:
-        #     self.value = self.action.text()
-        #     print(self.value)
         self.refresh()
 
-    def del_grp(self, grpname):
-        print(grpname)
-        group = Group.get(Group.name==grpname)
+    def del_grp(self, grp_ct):
+        group = Group.get(Group.name==grp_ct.group.name)
         contactgrp = ContactGroup.select().where(ContactGroup.group==group, ContactGroup.contact==self.contact).get()
-        contactgrp.delete()
-        print(contactgrp)
+        contactgrp.delete_instance()
         self.refresh()
 
     def add_grp(self, grpname):
-        group = Group.get(Group.name==grpname)
-        print(grpname)
-        # ContactGroup.create(group=group, contact=self.contact)
+        group = Group.get(Group.name==grpname.name)
+        ContactGroup.get_or_create(group=group, contact=self.contact)
         self.refresh()
 
     def edit_contacts(self, ctct):
-        print("edit_contacts "+ ctct)
+        print("edit_contacts ", ctct)
 
     def send_money(self, ctct):
-        print("send_money " + ctct)
+        print("send_money ", ctct)
 
     def _item_for_data(self, row, column, data, context=None):
         if column == 0:
