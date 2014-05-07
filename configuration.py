@@ -15,11 +15,11 @@ class Config(Constants):
 
     # ------------------------- Organisation --------------------------#
 
-    from models import Settings, Version
+    from models import Organization, Version
     try:
-        sttg = Settings.get(id=1)
+        sttg = Organization.get(id=1)
     except:
-        sttg = Settings(login=True, name_orga="Demo",
+        sttg = Organization(login=True, name_orga="Demo",
                          adress_org="Bamako Boulkassoumbougou",
                          email_org="demo@demo.ml", bp="177")
 

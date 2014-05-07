@@ -7,7 +7,7 @@ from datetime import datetime
 DATE_FMT = u'%c'
 
 from Common import peewee
-from Common.models import (BaseModel, Owner, Settings, SettingsAdmin, Version)
+from Common.models import (BaseModel, Owner, Organization, SettingsAdmin, Version)
 
 
 class Group(BaseModel):

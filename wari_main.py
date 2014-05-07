@@ -16,6 +16,7 @@ from models import SettingsAdmin
 
 from Common.ui.window import F_Window
 from Common.ui.login import LoginWidget, john_doe
+from Common.ui.license_view import LicenseViewWidget
 from ui.mainwindow import MainWindow
 
 
@@ -34,10 +35,11 @@ def main():
 
 if __name__ == '__main__':
     setup()
-
-    if (not Config.LOGIN and
-        SettingsAdmin().get(SettingsAdmin.id==1).can_use()):
-        john_doe()
-        main()
+    if not SettingsAdmin().get(SettingsAdmin.id==1).can_use:
+        if LicenseViewWidget(parent=None).exec_() == QDialog.Accepted:
+            main()
+    elif not Config.LOGIN:
+            john_doe()
+            main()
     elif LoginWidget().exec_() == QDialog.Accepted:
         main()

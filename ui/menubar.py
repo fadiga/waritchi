@@ -55,7 +55,7 @@ class MenuBar(F_MenuBar, F_Widget):
         menu_settings.addAction(solde)
 
         config = QAction(QIcon("{}config.png".format(Config.img_media)),
-                             u"Configuration", self)
+                             u"Préference", self)
         config.setShortcut("Ctrl+I")
         self.connect(config, SIGNAL("triggered()"), self.show_config)
         menu_settings.addAction(config)

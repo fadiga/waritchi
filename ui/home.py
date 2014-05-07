@@ -5,7 +5,7 @@
 from __future__ import (unicode_literals, absolute_import, division, print_function)
 
 from PyQt4.QtCore import Qt
-from PyQt4.QtGui import (QVBoxLayout, QTextEdit, QHBoxLayout, QGridLayout,
+from PyQt4.QtGui import (QVBoxLayout, QTextEdit, QGridLayout,
                          QGroupBox, QIntValidator, QFont, QPixmap)
 
 from models import SettingsAdmin
@@ -33,7 +33,7 @@ class HomeViewWidget(F_Widget):
         vbox = QVBoxLayout(self)
         vbox.addWidget(self.title)
         self.sttg = SettingsAdmin().select().where(SettingsAdmin.id==1).get()
-        if self.sttg.can_use():
+        if self.sttg.can_use:
             self.createHomeGroupBox()
             vbox.addWidget(self.homegbox)
         else:
