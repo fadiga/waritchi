@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# encoding=utf-8
+# -*- coding: utf-8 -*-
 # Autor: Fadiga
 
-from models import  (Group, Contact, Version, Organization,
-                     ContactGroup, Transfer, Owner, LocalSetting, SettingsAdmin)
+from Common.models import Version, Organization, Owner, SettingsAdmin
+from models import  (Group, Contact, ContactGroup, Transfer, LocalSetting)
 
 
 def setup(drop_tables=False):
@@ -19,9 +19,5 @@ def setup(drop_tables=False):
             models.create_table()
             did_create = True
     if did_create:
-        from Common.fixture import init_fuxture
-        from fixtures import localfixture
-        print(u"---- Creation de la BD -----")
-        init_fuxture()
-        localfixture()
-
+        from fixture import fixt_init
+        fixt_init().creat_all_or_pass()

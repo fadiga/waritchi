@@ -6,7 +6,7 @@ from __future__ import (unicode_literals, absolute_import, division, print_funct
 
 from PyQt4.QtGui import QStatusBar
 
-from models import Owner
+from Common.models import Owner
 from configuration import Config
 from Common.ui.common import (F_Label)
 # from ussd import get_solde

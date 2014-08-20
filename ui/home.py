@@ -8,7 +8,7 @@ from PyQt4.QtCore import Qt
 from PyQt4.QtGui import (QVBoxLayout, QTextEdit, QGridLayout,
                          QGroupBox, QIntValidator, QFont, QPixmap)
 
-from models import SettingsAdmin
+from Common.models import SettingsAdmin
 from static import Constants
 from Common.ui.common import (F_Widget, F_PageTitle, Button, F_Label, LineEdit,
                               EnterTabbedLineEdit, PyTextViewer,

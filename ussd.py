@@ -13,15 +13,15 @@ Simple demo app that initiates a USSD session, reads the string response and clo
 
 Note: for this to work, a valid USSD string for your network must be used.
 """
-
-from __future__ import print_function
+import sys
+import glob
+import serial
 
 # import logging
 
 from gsmmodem.modem import GsmModem
 from models import Transfer, Contact, LocalSetting
-
-
+from Common.ui.util import normalize
 
 PIN = None # SIM card PIN (if any)
 PIN = 0000
@@ -36,19 +36,20 @@ except Exception , e:
 
 
 def send_ussd(USSD_STRING):
-
+    print('Initializing modem...')
     #logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
     modem = GsmModem(PORT, BAUDRATE)
     modem.connect(PIN)
     modem.waitForNetworkCoverage(10)
-    # print(USSD_STRING)
-    response = modem.sendUssd(USSD_STRING)
-    # print('USSD reply received: {0}'.format(response.message))
+    print('Sending USSD string: {0}'.format(USSD_STRING))
+    response = modem.sendUssd(USSD_STRING) # response type: gsmmodem.modem.Ussd
+    print('USSD reply received: {0}'.format(response.message))
     if response.sessionActive:
-        # print('Closing USSD session.')
+        print('Closing USSD session.')
+        # At this point, you could also reply to the USSD message by using response.reply()
         response.cancel()
     else:
-        pass
+        print('USSD session was ended by network.')
     modem.close()
     return response
 
@@ -69,11 +70,39 @@ def get_solde():
     # print(send_ussd(USSD_STRING).message)
     try:
         response = send_ussd(USSD_STRING).message
+    except UnicodeDecodeError:
+        response = "UnicodeDecodeError"
     except Exception , e:
-        response = u"<h4>Veuillez changé le port dans la config </h4>\n \n {}".format(e)
+        # raise
+        response = "<h4>Veuillez changé le port dans la config </h4>\n{} \n {}".format(normalize(e), serial_ports())
     return response
 
 
 def format_str(phone_num, amount, code):
     return "#145#1*{amount}*{phone_num}*{code}#".format(code=code, amount=amount,
-                                                       phone_num=phone_num)
+                                                        phone_num=phone_num)
+
+
+def serial_ports():
+    if sys.platform.startswith('win'):
+        ports = ['COM' + str(i + 1) for i in range(256)]
+    elif sys.platform.startswith('linux'):
+        # this is to exclude your current terminal "/dev/tty"
+        ports = glob.glob('/dev/tty[A-Za-z]*')
+    elif sys.platform.startswith('darwin'):
+        ports = glob.glob('/dev/tty.*')
+    else:
+        raise EnvironmentError('platform non supportée')
+
+    result = []
+    for port in ports:
+        try:
+            s = serial.Serial(port)
+            s.close()
+            result.append(port)
+        except (OSError, serial.SerialException):
+            pass
+        except UnicodeDecodeError:
+            pass
+    print(result)
+    return result

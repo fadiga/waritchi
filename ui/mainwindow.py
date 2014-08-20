@@ -1,13 +1,15 @@
 #!/usr/bin/env python
-# encoding=utf-8
+# -*- coding: utf8 -*-
+# vim: ai ts=4 sts=4 et sw=4 nu
 # maintainer: Fad
+
 from __future__ import (unicode_literals, absolute_import, division, print_function)
 
 from PyQt4.QtGui import QIcon
 
 from Common.ui.common import FMainWindow
 
-from models import Owner
+from Common.models import Owner
 from configuration import Config
 
 from ui.menubar import MenuBar
@@ -23,7 +25,6 @@ class MainWindow(FMainWindow):
         self.statusbar = GStatusBar(self)
         self.setStatusBar(self.statusbar)
         self.active_menu()
-
         from ui.home import HomeViewWidget
         self.page = HomeViewWidget
         self.change_context(self.page)

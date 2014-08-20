@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# encoding=utf-8
+# -*- coding: utf-8 -*-
 # maintainer: Fadiga
 
 from datetime import datetime
@@ -7,7 +7,7 @@ from datetime import datetime
 DATE_FMT = u'%c'
 
 from Common import peewee
-from Common.models import (BaseModel, Owner, Organization, SettingsAdmin, Version)
+from Common.models import BaseModel
 
 
 class Group(BaseModel):
@@ -38,7 +38,6 @@ class Contact(BaseModel):
     class Meta:
         order_by = ('name', 'number')
 
-
     name = peewee.CharField(max_length=200, verbose_name=u"Nom", null=True )
     number = peewee.IntegerField(verbose_name=u"Numero de téléphone", unique=True)
 
@@ -67,8 +66,7 @@ class Contact(BaseModel):
         if verbose:
             d.update({'numbers': self.number,
                       'groups': [contact_group.group.to_dict()
-                                 for contact_group in ContactGroup \
-                                                      .filter(contact=self)]})
+                                 for contact_group in ContactGroup.filter(contact=self)]})
         return d
 
 
@@ -117,8 +115,8 @@ class LocalSetting(BaseModel):
     baudrate = peewee.CharField(max_length=30, verbose_name=(u"baudrate"),
                                 default="115200")
     port = peewee.CharField(max_length=100, verbose_name=(u"PORT"), default="/dev/ttyUSB2")
-    code_consultation = peewee.CharField(max_length=100, verbose_name=(u"Consultation",),
-                                        null=True)
+    code_consultation = peewee.CharField(max_length=100, verbose_name=(u"Consultation"),
+                                        null=True, default="#123#")
     code_send = peewee.CharField(max_length=100, verbose_name=(u"Envoie"), null=True)
 
     def __unicode__(self):
@@ -128,7 +126,6 @@ class LocalSetting(BaseModel):
     def get_or_create(cls, slug):
         try:
             ctct = cls.get(slug=slug)
-            print(ctct)
         except cls.DoesNotExist:
             ctct = cls.create(slug=slug)
         return ctct

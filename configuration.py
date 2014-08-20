@@ -15,19 +15,14 @@ class Config(Constants):
 
     # ------------------------- Organisation --------------------------#
 
-    from models import Organization, Version
-    try:
-        sttg = Organization.get(id=1)
-    except:
-        sttg = Organization(login=True, name_orga="Demo",
-                         adress_org="Bamako Boulkassoumbougou",
-                         email_org="demo@demo.ml", bp="177")
+    from Common.models import Organization, Version
 
     try:
         DB_VERS = Version.get(id=1)
     except:
         DB_VERS = Version(number=1)
 
+    sttg = Organization.get(id=1)
     LOGIN = sttg.login
     NAME_ORGA = sttg.name_orga
     TEL_ORGA = sttg.phone
@@ -35,3 +30,5 @@ class Config(Constants):
     BP = sttg.bp
     EMAIL_ORGA = sttg.email_org
 
+    DEBUG = True
+    # DEBUG = False

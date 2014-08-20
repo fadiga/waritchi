@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# encoding=utf-8
+# -*- coding: utf-8 -*-
 # maintainer: Fadiga
 
 import sqlite3
@@ -21,8 +21,8 @@ class SettgViewWidget(QDialog, F_Widget):
 
         self.baudrate = LineEdit(self.sttg.baudrate)
         self.code_consultation = LineEdit(self.sttg.code_consultation)
-        self.code_consultation.setEchoMode(LineEdit.Password)
         self.code_send = LineEdit(self.sttg.code_send)
+        self.code_send.setEchoMode(LineEdit.Password)
         self.port = LineEdit(self.sttg.port)
 
         formbox = QGridLayout()

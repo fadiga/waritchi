@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-# encoding=utf-8
+# -*- coding: utf-8 -*-
 # maintainer: fad
 
 from PyQt4.QtGui import (QMessageBox, QIcon, QAction)
 from PyQt4.QtCore import SIGNAL
 
 from Common.ui.common import F_Widget
+from Common.ui.util import normalize
 from Common.ui.cmenubar import F_MenuBar
 from configuration import Config
 from ui.addressbook import ContactViewWidget
@@ -98,13 +99,10 @@ class MenuBar(F_MenuBar, F_Widget):
     # Solde
     def show_solde(self):
         from ussd import get_solde
-        try:
-            mgs = u"""<h4>{}</h4>""".format(get_solde())
-        except Exception as e:
-            raise
-            print(e)
-            mgs = u"Veuillez branché le modem (cléf 3g)"
-        QMessageBox.about(self, u"Solde", mgs)
+        mgs = u"""<h4>{}</h4>""".format(get_solde())
+
+        # mgs = u"Veuillez branché le modem (cléf 3g) \n {}".format(serial_ports())
+        QMessageBox.about(self, u"Solde", normalize(mgs))
 
     #Aide
     def goto_help(self):

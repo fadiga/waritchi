@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# encoding=utf-8
+# -*- coding: utf-8 -*-
 # maintainer: Fadiga
 from __future__ import (unicode_literals, absolute_import, division, print_function)
 
