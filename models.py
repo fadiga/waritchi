@@ -7,7 +7,7 @@ from datetime import datetime
 DATE_FMT = u'%c'
 
 from Common import peewee
-from Common.models import BaseModel
+from Common.models import BaseModel, SettingsAdmin
 
 
 class Group(BaseModel):
@@ -30,7 +30,7 @@ class Group(BaseModel):
 
     @property
     def contacts(self):
-        return [p.contact for p in ContactGroup.select().where(ContactGroup.group==self)]
+        return [p.contact for p in ContactGroup.select().where(ContactGroup.group == self)]
 
 
 class Contact(BaseModel):
@@ -38,8 +38,9 @@ class Contact(BaseModel):
     class Meta:
         order_by = ('name', 'number')
 
-    name = peewee.CharField(max_length=200, verbose_name=u"Nom", null=True )
-    number = peewee.IntegerField(verbose_name=u"Numero de téléphone", unique=True)
+    name = peewee.CharField(max_length=200, verbose_name=u"Nom", null=True)
+    number = peewee.IntegerField(
+        verbose_name=u"Numero de téléphone", unique=True)
 
     def __unicode__(self):
         return u"{name}/{number}".format(name=self.name, number=self.number)
@@ -48,7 +49,8 @@ class Contact(BaseModel):
         from Common.ui.util import formatted_number
         ctct = "{}".format(formatted_number(self.number))
         if self.name:
-            ctct = u"({number}) {name}".format(name=self.name.title(), number=ctct)
+            ctct = u"({number}) {name}".format(
+                name=self.name.title(), number=ctct)
         return ctct
 
     @classmethod
@@ -114,10 +116,12 @@ class LocalSetting(BaseModel):
     slug = peewee.IntegerField(default=1)
     baudrate = peewee.CharField(max_length=30, verbose_name=(u"baudrate"),
                                 default="115200")
-    port = peewee.CharField(max_length=100, verbose_name=(u"PORT"), default="/dev/ttyUSB2")
+    port = peewee.CharField(max_length=100, verbose_name=(
+        u"PORT"), default="/dev/ttyUSB2")
     code_consultation = peewee.CharField(max_length=100, verbose_name=(u"Consultation"),
-                                        null=True, default="#123#")
-    code_send = peewee.CharField(max_length=100, verbose_name=(u"Envoie"), null=True)
+                                         null=True, default="#123#")
+    code_send = peewee.CharField(
+        max_length=100, verbose_name=(u"Envoie"), null=True)
 
     def __unicode__(self):
         return u"{port}".format(port=self.port)

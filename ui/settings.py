@@ -7,17 +7,18 @@ import sqlite3
 from PyQt4.QtGui import QVBoxLayout, QGridLayout, QDialog
 
 from models import LocalSetting
-from Common.ui.common import F_Widget, F_BoxTitle, F_Label, LineEdit, Button
+from Common.ui.common import FWidget, FBoxTitle, FLabel, LineEdit, Button
 
 
-class SettgViewWidget(QDialog, F_Widget):
+class SettgViewWidget(QDialog, FWidget):
+
     def __init__(self, parent, *args, **kwargs):
         QDialog.__init__(self, parent, *args, **kwargs)
 
         vbox = QVBoxLayout()
-        vbox.addWidget(F_BoxTitle(u" Configuration "))
+        vbox.addWidget(FBoxTitle(u" Configuration "))
 
-        self.sttg = LocalSetting.get(LocalSetting.slug==1)
+        self.sttg = LocalSetting.get(LocalSetting.slug == 1)
 
         self.baudrate = LineEdit(self.sttg.baudrate)
         self.code_consultation = LineEdit(self.sttg.code_consultation)
@@ -26,13 +27,13 @@ class SettgViewWidget(QDialog, F_Widget):
         self.port = LineEdit(self.sttg.port)
 
         formbox = QGridLayout()
-        formbox.addWidget(F_Label(u"Mon de passe"), 1, 0)
+        formbox.addWidget(FLabel(u"Mon de passe"), 1, 0)
         formbox.addWidget(self.baudrate, 1, 1)
-        formbox.addWidget(F_Label(u"Consultation"), 2, 0)
+        formbox.addWidget(FLabel(u"Consultation"), 2, 0)
         formbox.addWidget(self.code_consultation, 2, 1)
-        formbox.addWidget(F_Label(u"Code envoi"), 3, 0)
+        formbox.addWidget(FLabel(u"Code envoi"), 3, 0)
         formbox.addWidget(self.code_send, 3, 1)
-        formbox.addWidget(F_Label(u"PORT"), 4, 0)
+        formbox.addWidget(FLabel(u"PORT"), 4, 0)
         formbox.addWidget(self.port, 4, 1)
         butt = Button(u"Enregistrer")
         butt.clicked.connect(self.edit_prod)

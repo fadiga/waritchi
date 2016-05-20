@@ -2,13 +2,14 @@
 # -*- coding: utf8 -*-
 # vim: ai ts=4 sts=4 et sw=4 nu
 # maintainer: Fad
-from __future__ import (unicode_literals, absolute_import, division, print_function)
+from __future__ import (
+    unicode_literals, absolute_import, division, print_function)
 
 from PyQt4.QtGui import QStatusBar
 
 from Common.models import Owner
 from configuration import Config
-from Common.ui.common import (F_Label)
+from Common.ui.common import (FLabel)
 # from ussd import get_solde
 
 
@@ -33,13 +34,14 @@ class GStatusBar(QStatusBar):
                 user = Owner.get(islog=True)
                 mss = u"Votez connecté en tant que {user}" \
                       u" et les droits de {group}.".format(user=user.username,
-                                                            group=user.group)
+                                                           group=user.group)
             except:
                 mss = u"Vos identifiants"
             self.showMessage(mss, 15000)
 
         if self.compt == 2:
-            self.showMessage(u"Seul l'organisation {} est autorisée ce logiciel".format(Config.NAME_ORGA), 15000)
+            self.showMessage(u"Seul l'organisation {} est autorisée ce logiciel".format(
+                Config.NAME_ORGA), 15000)
 
         if self.compt > 4:
             self.compt = 0

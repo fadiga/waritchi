@@ -7,20 +7,22 @@ import sqlite3
 from PyQt4.QtGui import QVBoxLayout, QGridLayout, QDialog, QIntValidator, QFont
 
 from models import Transfer, Group
-from Common.ui.common import (F_Widget, F_BoxTitle, F_Label, LineEdit,
+from Common.ui.common import (FWidget, FBoxTitle, FLabel, LineEdit,
                               Button, ErrorLabel)
 from ussd import multiple_sender
 
 
-class ContactGroupViewWidget(QDialog, F_Widget):
+class ContactGroupViewWidget(QDialog, FWidget):
+
     def __init__(self, table_group, parent, *args, **kwargs):
         QDialog.__init__(self, parent, *args, **kwargs)
 
         self.parent = table_group
         group_id = self.parent.table_group.group.group_id
-        self.group = Group.select().where(Group.id==group_id).get()
+        self.group = Group.select().where(Group.id == group_id).get()
         vbox = QVBoxLayout()
-        vbox.addWidget(F_BoxTitle(u"<h3>Groupe: {}</h3>".format(self.group.name)))
+        vbox.addWidget(FBoxTitle(
+            u"<h3>Groupe: {}</h3>".format(self.group.name)))
         self.order_number = LineEdit()
 
         # form transfer
@@ -28,7 +30,7 @@ class ContactGroupViewWidget(QDialog, F_Widget):
         self.amount.setFont(QFont("Arial", 15))
         self.amount.setValidator(QIntValidator())
         self.amount.setToolTip(u"Taper le montant du transfert")
-        # self.solde = F_Label(get_solde())
+        # self.solde = FLabel(get_solde())
         self.amount_error = ErrorLabel(u"")
 
         send_butt = Button(u"Envoyer")
@@ -37,7 +39,7 @@ class ContactGroupViewWidget(QDialog, F_Widget):
         cancel_but.clicked.connect(self.cancel)
 
         formbox = QGridLayout()
-        formbox.addWidget(F_Label(u"Montant: "), 0, 0)
+        formbox.addWidget(FLabel(u"Montant: "), 0, 0)
         formbox.addWidget(self.amount, 0, 1)
         formbox.addWidget(send_butt, 2, 1)
         formbox.addWidget(cancel_but, 2, 0)
@@ -68,7 +70,7 @@ class ContactGroupViewWidget(QDialog, F_Widget):
                           for i in ContactGroup.filter(group__id=self.group.id)]
         data = {"phone_num": list_phone_num,
                 "code": "03944", "amount": unicode(self.amount.text())
-        }
+                }
         print data
         # multiple_sender(data)
         self.cancel()

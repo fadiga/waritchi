@@ -5,20 +5,27 @@
 from PyQt4.QtGui import QVBoxLayout, QGridLayout, QDialog, QIntValidator, QFont
 
 from models import Group, ContactGroup
-from Common.ui.common import (F_Widget, F_BoxTitle, F_Label, LineEdit,
+from Common.ui.common import (FWidget, FBoxTitle, FLabel, LineEdit,
                               Button, ErrorLabel, EnterTabbedLineEdit)
 from ussd import multiple_sender
 
+try:
+    unicode
+except Exception as e:
+    unicode = str
 
-class SendGroupViewWidget(QDialog, F_Widget):
+
+class SendGroupViewWidget(QDialog, FWidget):
+
     def __init__(self, table_group, parent, *args, **kwargs):
         QDialog.__init__(self, parent, *args, **kwargs)
 
         self.parent = table_group
         group_id = self.parent.table_group.group.group_id
-        self.group = Group.select().where(Group.id==group_id).get()
+        self.group = Group.select().where(Group.id == group_id).get()
         vbox = QVBoxLayout()
-        vbox.addWidget(F_BoxTitle(u"<h2>Envoi pour les ({0}) contactes du groupe <b>{1}</b></h2>".format(len(self.group.contacts), self.group.name)))
+        vbox.addWidget(FBoxTitle(
+            u"<h2>Envoi pour les ({0}) contactes du groupe <b>{1}</b></h2>".format(len(self.group.contacts), self.group.name)))
 
         # form transfer
         self.amount = LineEdit()
@@ -36,9 +43,9 @@ class SendGroupViewWidget(QDialog, F_Widget):
         cancel_but.clicked.connect(self.cancel)
 
         formbox = QGridLayout()
-        formbox.addWidget(F_Label(u"Montant: "), 0, 0)
+        formbox.addWidget(FLabel(u"Montant: "), 0, 0)
         formbox.addWidget(self.amount, 0, 1)
-        formbox.addWidget(F_Label(u"Code: "), 1, 0)
+        formbox.addWidget(FLabel(u"Code: "), 1, 0)
         formbox.addWidget(self.password_field, 1, 1)
         formbox.addWidget(self.send_butt, 2, 1)
         formbox.addWidget(cancel_but, 2, 0)
@@ -80,7 +87,7 @@ class SendGroupViewWidget(QDialog, F_Widget):
         data = {"phone_num": self.list_phone_num,
                 "code": unicode(self.password_field.text()),
                 "amount": unicode(self.amount.text())
-        }
+                }
         multiple_sender(data)
         self.cancel()
         self.parent.table_group.refresh_()

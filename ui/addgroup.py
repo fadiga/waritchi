@@ -7,23 +7,29 @@ import sqlite3
 from PyQt4.QtGui import QVBoxLayout, QGridLayout, QDialog
 
 from models import Group
-from Common.ui.common import F_Widget, F_BoxTitle, F_Label, LineEdit, Button
+from Common.ui.common import FWidget, FBoxTitle, FLabel, LineEdit, Button
+
+try:
+    unicode
+except Exception as e:
+    unicode = str
 
 
-class GroupViewWidget(QDialog, F_Widget):
+class GroupViewWidget(QDialog, FWidget):
+
     def __init__(self, table_group, parent, *args, **kwargs):
         QDialog.__init__(self, parent, *args, **kwargs)
 
         vbox = QVBoxLayout()
-        vbox.addWidget(F_BoxTitle(u"Ajout d'un nouveau groupe"))
+        vbox.addWidget(FBoxTitle(u"Ajout d'un nouveau groupe"))
         self.parent = table_group
 
         self.name = LineEdit()
         formbox = QGridLayout()
 
-        self.error_field = F_Label(u"")
+        self.error_field = FLabel(u"")
         formbox.addWidget(self.error_field, 0, 1)
-        formbox.addWidget(F_Label(u"Nom"), 1, 0)
+        formbox.addWidget(FLabel(u"Nom"), 1, 0)
         formbox.addWidget(self.name, 1, 1)
         butt = Button(u"Enregistrer")
         butt.clicked.connect(self.edit_prod)

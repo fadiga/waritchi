@@ -1,27 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # maintainer: Fadiga
-from __future__ import (unicode_literals, absolute_import, division, print_function)
+from __future__ import (
+    unicode_literals, absolute_import, division, print_function)
 
 import sqlite3
 
 from PyQt4.QtGui import (QVBoxLayout, QGridLayout, QDialog, QIntValidator, QFont,
-                        QComboBox)
+                         QComboBox)
 from PyQt4.QtCore import QVariant, Qt
 
 from models import Contact, Group, ContactGroup
 from Common.ui.util import raise_success, raise_error
-from Common.ui.common import (F_Widget, F_BoxTitle, F_Label, LineEdit,
+from Common.ui.common import (FWidget, FBoxTitle, FLabel, LineEdit,
                               Button, ErrorLabel, IntLineEdit)
-from ussd import multiple_sender
+# from ussd import multiple_sender
+try:
+    unicode
+except Exception as e:
+    unicode = str
 
 
-class ContactNewViewWidget(QDialog, F_Widget):
+class ContactNewViewWidget(QDialog, FWidget):
+
     def __init__(self, parent, *args, **kwargs):
         QDialog.__init__(self, parent, *args, **kwargs)
 
         vbox = QVBoxLayout()
-        vbox.addWidget(F_BoxTitle(u"<h3>Ajout de contact </h3>"))
+        vbox.addWidget(FBoxTitle(u"<h3>Ajout de contact </h3>"))
         self.combo_grp = QComboBox()
         groups = Group()
         groups.name = "Aucun"
@@ -30,13 +36,12 @@ class ContactNewViewWidget(QDialog, F_Widget):
         self.list_grp.append(groups)
         self.list_grp.reverse()
 
-        for index in xrange(0, len(self.list_grp)):
-            op = self.list_grp[index]
-            sentence = u"%(name)s" % {'name': op.name}
-            self.combo_grp.addItem(sentence, QVariant(op.id))
+        for index in self.list_grp:
+            sentence = u"%(name)s" % {'name': index.name}
+            self.combo_grp.addItem(sentence)
 
         self.full_name = LineEdit()
-        self.msg_e_or_c = F_Label("")
+        self.msg_e_or_c = FLabel("")
         self.full_name.setFont(QFont("Arial", 16))
         self.phone_number = IntLineEdit()
         self.phone_number.setInputMask("D9.99.99.99")
@@ -49,11 +54,11 @@ class ContactNewViewWidget(QDialog, F_Widget):
         cancel_but.clicked.connect(self.cancel)
 
         formbox = QGridLayout()
-        formbox.addWidget(F_Label(u"Groupes:"), 0, 0)
+        formbox.addWidget(FLabel(u"Groupes:"), 0, 0)
         formbox.addWidget(self.combo_grp, 1, 0)
-        formbox.addWidget(F_Label(u"Nom complèt: "), 0, 1)
+        formbox.addWidget(FLabel(u"Nom complèt: "), 0, 1)
         formbox.addWidget(self.full_name, 1, 1)
-        formbox.addWidget(F_Label(u"Numéro: "), 0, 2)
+        formbox.addWidget(FLabel(u"Numéro: "), 0, 2)
         formbox.addWidget(self.phone_number, 1, 2)
         formbox.addWidget(send_butt, 2, 1)
         formbox.addWidget(cancel_but, 2, 0)
@@ -95,8 +100,8 @@ class ContactNewViewWidget(QDialog, F_Widget):
         grp = unicode(self.list_grp[self.combo_grp.currentIndex()])
 
         if not grp == "Aucun":
-            grp = Group.select().where(Group.name==grp).get()
-            contact = Contact.select().where(Contact.number==phone_number).get()
+            grp = Group.select().where(Group.name == grp).get()
+            contact = Contact.select().where(Contact.number == phone_number).get()
             ContactGroup(group=grp.id, contact=contact).save()
         self.full_name.setText("")
         self.phone_number.setText("")

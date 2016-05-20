@@ -3,5 +3,5 @@
 # maintainer: Fad
 
 
-from mainwindow import MainWindow
-from menubar import MenuBar
+# from mainwindow import MainWindow
+# from menubar import MenuBar

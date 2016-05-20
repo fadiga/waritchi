@@ -5,18 +5,20 @@
 from PyQt4.QtGui import QVBoxLayout, QGridLayout, QDialog, QIntValidator, QFont
 
 from models import Contact
-from Common.ui.common import (F_Widget, F_BoxTitle, F_Label, LineEdit,
+from Common.ui.common import (FWidget, FBoxTitle, FLabel, LineEdit,
                               Button, ErrorLabel, EnterTabbedLineEdit)
-from ussd import multiple_sender
+# from ussd import multiple_sender
 
 
-class SendByCtViewWidget(QDialog, F_Widget):
+class SendByCtViewWidget(QDialog, FWidget):
+
     def __init__(self, ctct_id, parent, *args, **kwargs):
         QDialog.__init__(self, parent, *args, **kwargs)
 
-        self.contact = Contact.select().where(Contact.id==ctct_id).get()
+        self.contact = Contact.select().where(Contact.id == ctct_id).get()
         vbox = QVBoxLayout()
-        vbox.addWidget(F_BoxTitle(u"<h2>Envoie pour le contact <b>{}</b></h2>".format(self.contact.display_name())))
+        vbox.addWidget(FBoxTitle(
+            u"<h2>Envoie pour le contact <b>{}</b></h2>".format(self.contact.display_name())))
         # form transfer
         self.amount = LineEdit()
         self.amount.setFont(QFont("Arial", 15))
@@ -33,9 +35,9 @@ class SendByCtViewWidget(QDialog, F_Widget):
         cancel_but.clicked.connect(self.cancel)
 
         formbox = QGridLayout()
-        formbox.addWidget(F_Label(u"Montant: "), 0, 0)
+        formbox.addWidget(FLabel(u"Montant: "), 0, 0)
         formbox.addWidget(self.amount, 0, 1)
-        formbox.addWidget(F_Label(u"Code: "), 1, 0)
+        formbox.addWidget(FLabel(u"Code: "), 1, 0)
         formbox.addWidget(self.password_field, 1, 1)
         formbox.addWidget(self.send_butt, 2, 1)
         formbox.addWidget(cancel_but, 2, 0)
@@ -72,6 +74,6 @@ class SendByCtViewWidget(QDialog, F_Widget):
         data = {"phone_num": [self.contact.number],
                 "code": unicode(self.password_field.text()),
                 "amount": unicode(self.amount.text())
-        }
+                }
         multiple_sender(data)
         self.cancel()

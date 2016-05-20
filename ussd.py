@@ -3,16 +3,17 @@
 # vim: ai ts=4 sts=4 et sw=4 nu
 # maintainer: Fad
 
-from __future__ import (unicode_literals, absolute_import, division, print_function)
+from __future__ import (
+    unicode_literals, absolute_import, division, print_function)
 
-"""\
-Demo: Simple USSD example
+# """\
+# Demo: Simple USSD example
 
-Simple demo app that initiates a USSD session, reads the string response and closes the session
-(if it wasn't closed by the network)
+# Simple demo app that initiates a USSD session, reads the string response and closes the session
+# (if it wasn't closed by the network)
 
-Note: for this to work, a valid USSD string for your network must be used.
-"""
+# Note: for this to work, a valid USSD string for your network must be used.
+# """
 import sys
 import glob
 import serial
@@ -23,14 +24,14 @@ from gsmmodem.modem import GsmModem
 from models import Transfer, Contact, LocalSetting
 from Common.ui.util import normalize
 
-PIN = None # SIM card PIN (if any)
+PIN = None  # SIM card PIN (if any)
 PIN = 0000
 try:
-    sttg = LocalSetting.get(LocalSetting.slug==1)
+    sttg = LocalSetting.get(LocalSetting.slug == 1)
     PORT = sttg.port
     BAUDRATE = sttg.baudrate
     USSD_STRING = sttg.code_consultation
-except Exception , e:
+except Exception as e:
     print(e)
     pass
 
@@ -42,11 +43,13 @@ def send_ussd(USSD_STRING):
     modem.connect(PIN)
     modem.waitForNetworkCoverage(10)
     print('Sending USSD string: {0}'.format(USSD_STRING))
-    response = modem.sendUssd(USSD_STRING) # response type: gsmmodem.modem.Ussd
+    # response type: gsmmodem.modem.Ussd
+    response = modem.sendUssd(USSD_STRING)
     print('USSD reply received: {0}'.format(response.message))
     if response.sessionActive:
         print('Closing USSD session.')
-        # At this point, you could also reply to the USSD message by using response.reply()
+        # At this point, you could also reply to the USSD message by using
+        # response.reply()
         response.cancel()
     else:
         print('USSD session was ended by network.')
@@ -62,7 +65,8 @@ def multiple_sender(data):
         transfer = Transfer()
         transfer.amount = amount
         transfer.contact = Contact.get_or_create(phone_num)
-        transfer.response = u"{}".format(send_ussd(format_str(phone_num, amount, code)).message)
+        transfer.response = u"{}".format(
+            send_ussd(format_str(phone_num, amount, code)).message)
         transfer.save()
 
 
@@ -72,9 +76,10 @@ def get_solde():
         response = send_ussd(USSD_STRING).message
     except UnicodeDecodeError:
         response = "UnicodeDecodeError"
-    except Exception , e:
+    except Exception as e:
         # raise
-        response = "<h4>Veuillez changé le port dans la config </h4>\n{} \n {}".format(normalize(e), serial_ports())
+        response = "<h4>Veuillez changé le port dans la config </h4>\n{} \n {}".format(
+            normalize(e), serial_ports())
     return response
 
 

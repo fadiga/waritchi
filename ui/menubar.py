@@ -5,18 +5,19 @@
 from PyQt4.QtGui import (QMessageBox, QIcon, QAction)
 from PyQt4.QtCore import SIGNAL
 
-from Common.ui.common import F_Widget
+from Common.ui.common import FWidget
 from Common.ui.util import normalize
-from Common.ui.cmenubar import F_MenuBar
+from Common.ui.cmenubar import FMenuBar
 from configuration import Config
 from ui.addressbook import ContactViewWidget
 from ui.contact_add import ContactNewViewWidget
 from ui.settings import SettgViewWidget
 
 
-class MenuBar(F_MenuBar, F_Widget):
+class MenuBar(FMenuBar, FWidget):
+
     def __init__(self, parent=None, *args, **kwargs):
-        F_MenuBar.__init__(self, parent=parent, *args, **kwargs)
+        FMenuBar.__init__(self, parent=parent, *args, **kwargs)
 
         self.parent = parent
 
@@ -40,7 +41,7 @@ class MenuBar(F_MenuBar, F_Widget):
         goto_.addAction(addcontact)
 
         dashboard = QAction(QIcon("{}dashboard.png".format(Config.img_media)),
-                             u"Tableau de bord", self)
+                            u"Tableau de bord", self)
         dashboard.setShortcut("Ctrl+T")
         self.connect(dashboard, SIGNAL("triggered()"), self.dashboard)
         goto_.addAction(dashboard)
@@ -50,13 +51,13 @@ class MenuBar(F_MenuBar, F_Widget):
         # Menu Options
         menu_settings = self.addMenu(u"Options")
         solde = QAction(QIcon("{}solde.png".format(Config.img_media)),
-                             u"Solde du compte", self)
+                        u"Solde du compte", self)
         solde.setShortcut("Ctrl+S")
         self.connect(solde, SIGNAL("triggered()"), self.show_solde)
         menu_settings.addAction(solde)
 
         config = QAction(QIcon("{}config.png".format(Config.img_media)),
-                             u"Préference", self)
+                         u"Préference", self)
         config.setShortcut("Ctrl+I")
         self.connect(config, SIGNAL("triggered()"), self.show_config)
         menu_settings.addAction(config)
@@ -64,8 +65,7 @@ class MenuBar(F_MenuBar, F_Widget):
         # Help
         menu_help = self.addMenu(u"Aide")
         menu_help.addAction(QIcon('images/help.png'), "Aide",
-                                    self.goto_help)
-
+                            self.goto_help)
 
     def dashboard(self):
         from ui.home import HomeViewWidget
@@ -74,21 +74,21 @@ class MenuBar(F_MenuBar, F_Widget):
     def goto_addressbook(self):
         self.change_main_context(ContactViewWidget)
 
-    #Add contact
+    # Add contact
     def goto_add_contact(self):
         self.open_dialog(ContactNewViewWidget, modal=True)
 
-    #Search contact
+    # Search contact
     def goto_search_contact(self):
         QMessageBox.about(self, u"Recherche contact",
                                 u"<h3>Pour chercher un contact</h3>")
 
-    #Delete contact
+    # Delete contact
     def goto_delete_contact(self):
         QMessageBox.about(self, u"Supprimer contact",
                                 u"<h3>Pour supprimer un contact</h3>")
 
-    #Settings
+    # Settings
     def goto_settings(self):
         QMessageBox.about(self, u"Options",
                                 u"<h3>Settings</h3>")
@@ -104,7 +104,7 @@ class MenuBar(F_MenuBar, F_Widget):
         # mgs = u"Veuillez branché le modem (cléf 3g) \n {}".format(serial_ports())
         QMessageBox.about(self, u"Solde", normalize(mgs))
 
-    #Aide
+    # Aide
     def goto_help(self):
 
         from help import HTMLEditor

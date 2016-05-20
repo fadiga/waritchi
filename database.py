@@ -3,7 +3,7 @@
 # Autor: Fadiga
 
 from Common.models import Version, Organization, Owner, SettingsAdmin
-from models import  (Group, Contact, ContactGroup, Transfer, LocalSetting)
+from models import (Group, Contact, ContactGroup, Transfer, LocalSetting)
 
 
 def setup(drop_tables=False):
@@ -21,3 +21,5 @@ def setup(drop_tables=False):
     if did_create:
         from fixture import fixt_init
         fixt_init().creat_all_or_pass()
+
+setup()
