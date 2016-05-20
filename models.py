@@ -5,8 +5,8 @@
 from datetime import datetime
 
 DATE_FMT = u'%c'
+import peewee
 
-from Common import peewee
 from Common.models import BaseModel, SettingsAdmin
 
 

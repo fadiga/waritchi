@@ -107,5 +107,5 @@ class MenuBar(FMenuBar, FWidget):
     # Aide
     def goto_help(self):
 
-        from help import HTMLEditor
+        from ui.help import HTMLEditor
         self.open_dialog(HTMLEditor, modal=True)

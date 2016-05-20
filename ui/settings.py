@@ -8,6 +8,10 @@ from PyQt4.QtGui import QVBoxLayout, QGridLayout, QDialog
 
 from models import LocalSetting
 from Common.ui.common import FWidget, FBoxTitle, FLabel, LineEdit, Button
+try:
+    unicode
+except Exception as e:
+    unicode = str
 
 
 class SettgViewWidget(QDialog, FWidget):

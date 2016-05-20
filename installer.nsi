@@ -6,12 +6,12 @@
 
   !define MUI_PRODUCT "Money"
   !define MUI_FILE "wari_main"
-  !define MUI_VERSION "Ver. 0.3b"
+  !define MUI_VERSION "Ver. 0.4"
   !define MUI_BRANDINGTEXT "${MUI_PRODUCT} ${MUI_VERSION}"
   !define IMAGES "images"
   !define CIMAGES "cimages"
   !define MEDIA "static"
-  !define CIMAGES_PATH "C:\Users\reg\Documents\works\Common\${CIMAGES}"
+  !define CIMAGES_PATH "C:\Users\fadiga\Documents\GitHub\Common\${CIMAGES}"
   ;CRCCheck On
 
   !include "${NSISDIR}\Contrib\Modern UI\System.nsh"
@@ -56,7 +56,7 @@ Section "install"
   ; List of files/folders to copy
   File /r dist\*.*
   File /r *.dll
-  File /r *.manifest
+  ;File /r *.manifest
   File /r ${IMAGES}
   File /r ${CIMAGES_PATH}
 
